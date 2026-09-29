@@ -1,0 +1,33 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- Eigenes Programmfenster für die Lernplattform (WebView2). Wird von tools\build-exe.js gebaut. -->
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <RollForward>LatestMajor</RollForward>
+    <UseWindowsForms>true</UseWindowsForms>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>disable</Nullable>
+    <AssemblyName>Lernplattform</AssemblyName>
+    <RootNamespace>Lernplattform</RootNamespace>
+    <ApplicationIcon>..\lernplattform.ico</ApplicationIcon>
+    <ApplicationHighDpiMode>PerMonitorV2</ApplicationHighDpiMode>
+    <RuntimeIdentifier>win-x64</RuntimeIdentifier>
+    <SelfContained>false</SelfContained>
+    <PublishSingleFile>true</PublishSingleFile>
+    <IncludeNativeLibrariesForSelfExtract>true</IncludeNativeLibrariesForSelfExtract>
+    <DebugType>none</DebugType>
+    <Product>Lernplattform</Product>
+    <AssemblyTitle>Lernplattform</AssemblyTitle>
+    <Company>Lernplattform</Company>
+    <Copyright>Eigene App</Copyright>
+    <Version>1.1.0</Version>
+    <MSBuildWarningsAsMessages>MSB3277</MSBuildWarningsAsMessages>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Web.WebView2" Version="1.0.*" />
+  </ItemGroup>
+  <ItemGroup>
+    <!-- Der Node-Server (von build-exe.js erzeugt) steckt in der EXE und wird beim Start ausgepackt -->
+    <EmbeddedResource Include="..\build\Lernplattform-Server.exe" LogicalName="server.exe" Condition="Exists('..\build\Lernplattform-Server.exe')" />
+  </ItemGroup>
+</Project>
