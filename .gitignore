@@ -1,0 +1,6 @@
+# Bau-Zwischendateien (werden von EXE-bauen.bat neu erzeugt)
+desktop/bin/
+desktop/obj/
+build/desktop/
+build/node_modules/
+build/Lernplattform-Server.exe

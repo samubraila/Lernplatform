@@ -1206,7 +1206,10 @@
     const t = document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark';
     document.documentElement.dataset.theme = t;
     try { localStorage.setItem('theme', t); } catch {}
+    tellHostTheme();
   };
+  // Im eigenen Programmfenster: Titelleiste passend hell/dunkel färben
+  function tellHostTheme() { window.chrome?.webview?.postMessage({ type: 'theme', dark: document.documentElement.dataset.theme === 'dark' }); }
   const setSide = hidden => { document.body.classList.toggle('side-hidden', hidden); $('#expandBtn').hidden = !hidden; store.set('sideHidden', hidden); };
   $('#collapseBtn').onclick = () => setSide(true);
   $('#expandBtn').onclick = () => setSide(false);
@@ -1230,7 +1233,9 @@
   addEventListener('hashchange', route);
 
   (async () => {
-    window.__lern = { S };   // für die automatischen Tests
+    // S für die automatischen Tests · beforeClose/saveBin für das Programmfenster (Lernplattform.exe) beim Schließen
+    window.__lern = { S, beforeClose: async () => { await flushSave(); return S.bin && S.bin.dirty ? 'dirty' : 'ok'; }, saveBin: () => saveBin(true) };
+    tellHostTheme();
     try { const i = await api.info(); S.apps = i.apps || {}; S.exe = i.exe; setRoot(i.root, i.rootName); } catch {}
     await renderTree();
     connect();

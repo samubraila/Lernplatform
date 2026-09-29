@@ -1,6 +1,7 @@
-// Baut dist\Lernplattform.exe: Node + server.js + komplette Oberfläche (public\) in einer Datei.
+// Baut dist\Lernplattform.exe: eigenes Programmfenster (desktop\, WebView2) mit eingebautem Server (Node + server.js + public\).
 //   Start:  node tools\build-exe.js      (oder EXE-bauen.bat)
-// Ablauf: SEA-Blob erzeugen → node.exe kopieren → Symbol/Versionsinfo setzen → Blob einfügen → ohne Konsolenfenster starten.
+// Ablauf: SEA-Blob erzeugen → node.exe kopieren → Symbol/Versionsinfo setzen → Blob einfügen → ohne Konsolenfenster starten
+//         = build\Lernplattform-Server.exe → mit dotnet in das Programmfenster einbetten → dist\Lernplattform.exe.
 const { execFileSync } = require('child_process');
 const fs = require('fs');
 const path = require('path');
@@ -8,7 +9,8 @@ const path = require('path');
 const APP = path.resolve(__dirname, '..');
 const BUILD = path.join(APP, 'build');
 const DIST = path.join(APP, 'dist');
-const EXE = path.join(DIST, 'Lernplattform.exe');
+const EXE = path.join(BUILD, 'Lernplattform-Server.exe');
+const APP_EXE = path.join(DIST, 'Lernplattform.exe');
 const NPM = process.platform === 'win32' ? 'npm.cmd' : 'npm';
 const step = msg => console.log('› ' + msg);
 
@@ -39,7 +41,7 @@ execFileSync(process.execPath, ['--experimental-sea-config', path.join(BUILD, 's
 
 // 3) node.exe kopieren und Symbol + Versionsinfo setzen
 step('Erzeuge Lernplattform.exe …');
-try { fs.rmSync(EXE, { force: true }); } catch (e) { throw new Error('Lernplattform.exe läuft noch – bitte zuerst beenden (' + e.message + ')'); }
+try { fs.rmSync(EXE, { force: true }); } catch (e) { throw new Error('Lernplattform-Server.exe ist noch in Benutzung (' + e.message + ')'); }
 fs.copyFileSync(process.execPath, EXE);
 const rcedit = path.join(BUILD, 'node_modules', 'rcedit', 'bin', 'rcedit-x64.exe');
 execFileSync(rcedit, [EXE,
@@ -64,5 +66,13 @@ if (buf.toString('latin1', pe, pe + 4) !== 'PE\0\0') throw new Error('Keine gül
 buf.writeUInt16LE(2, pe + 24 + 68);   // IMAGE_SUBSYSTEM_WINDOWS_GUI
 fs.writeFileSync(EXE, buf);
 
-const mb = (fs.statSync(EXE).size / 1048576).toFixed(0);
-console.log(`\n✓ Fertig: ${EXE} (${mb} MB)`);
+// 6) Programmfenster bauen (C# + WebView2), der Server steckt darin
+step('Baue das Programmfenster (dotnet) …');
+const OUT = path.join(BUILD, 'desktop');
+fs.rmSync(OUT, { recursive: true, force: true });
+execFileSync('dotnet', ['publish', path.join(APP, 'desktop', 'Lernplattform.Desktop.csproj'), '-c', 'Release', '-o', OUT, '--nologo', '-v', 'q'], { stdio: 'inherit' });
+try { fs.rmSync(APP_EXE, { force: true }); } catch (e) { throw new Error('Lernplattform.exe läuft noch – bitte zuerst schließen (' + e.message + ')'); }
+fs.copyFileSync(path.join(OUT, 'Lernplattform.exe'), APP_EXE);
+
+const mb = (fs.statSync(APP_EXE).size / 1048576).toFixed(0);
+console.log(`\n✓ Fertig: ${APP_EXE} (${mb} MB)`);
