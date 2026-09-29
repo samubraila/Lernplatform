@@ -1,0 +1,166 @@
+{
+  "date": "2026-09-29T09:29:11.938Z",
+  "ms": 16597,
+  "results": [
+    {
+      "group": "PDF",
+      "name": "PDF anzeigen: Seiten, Text und Formularfelder",
+      "ok": true,
+      "detail": "3 Seiten, 5 Formularfelder erkannt",
+      "ms": 386,
+      "shots": []
+    },
+    {
+      "group": "PDF",
+      "name": "Text mit der Maus markieren und kopieren (Strg+C)",
+      "ok": true,
+      "detail": "Markiert und kopiert: „Arbeitsblatt Topologien“",
+      "ms": 458,
+      "shots": [
+        {
+          "name": "001.png",
+          "label": "Text im PDF markiert"
+        }
+      ]
+    },
+    {
+      "group": "PDF",
+      "name": "„Text kopieren“ kopiert den ganzen Text aller Seiten",
+      "ok": true,
+      "detail": "143 Zeichen aus 3 Seiten · Meldung: ✓ Text kopiert (134 Zeichen, 3 Seiten)",
+      "ms": 138,
+      "shots": []
+    },
+    {
+      "group": "PDF",
+      "name": "Echte Schuldatei: Absatz mit der Maus markieren und kopieren",
+      "ok": true,
+      "detail": "127 Textstücke auf Seite 1 · kopiert: „Wenn ein Netzwerk (oder ein Netzwerk-Segment) der Bus- Topologie folgt, dann gibt es eine …“",
+      "ms": 959,
+      "shots": [
+        {
+          "name": "002.png",
+          "label": "Echte PDF-Datei: Absatz markiert"
+        }
+      ]
+    },
+    {
+      "group": "PDF",
+      "name": "Formular ausfüllen: Textfeld, Kästchen, Liste, Optionsfeld",
+      "ok": true,
+      "detail": "{\"name\":\"Max Müller\",\"fertig\":true,\"klasse\":\"FI12\",\"note\":\"mittel\"}",
+      "ms": 987,
+      "shots": [
+        {
+          "name": "003.png",
+          "label": "PDF-Formular ausgefüllt"
+        }
+      ]
+    },
+    {
+      "group": "PDF",
+      "name": "Vorhandenen Text ändern",
+      "ok": true,
+      "detail": "Neuer Text im PDF gefunden",
+      "ms": 1181,
+      "shots": [
+        {
+          "name": "004.png",
+          "label": "PDF-Text wird geändert"
+        }
+      ]
+    },
+    {
+      "group": "PDF",
+      "name": "Neuen Text mehrzeilig mit Umlauten schreiben",
+      "ok": true,
+      "detail": "Beide Zeilen im PDF · Zeichen ohne Arial-Glyphe (✓) → „?“",
+      "ms": 1198,
+      "shots": []
+    },
+    {
+      "group": "PDF",
+      "name": "Abdecken, Markieren und Zeichnen (Pixelprüfung)",
+      "ok": true,
+      "detail": "Abdecken: 1720→0 dunkle Pixel · Markierung: 100 % gelb · Zeichnung: 1836 rote Pixel",
+      "ms": 1581,
+      "shots": [
+        {
+          "name": "005.png",
+          "label": "Abdecken, Markieren, Zeichnen"
+        }
+      ]
+    },
+    {
+      "group": "PDF",
+      "name": "Bild einfügen (z. B. Unterschrift), vergrößern und speichern",
+      "ok": true,
+      "detail": "Bild eingefügt, Breite 200 → 232 pt, im PDF vorhanden",
+      "ms": 1405,
+      "shots": [
+        {
+          "name": "006.png",
+          "label": "Eingefügtes Bild (Unterschrift)"
+        }
+      ]
+    },
+    {
+      "group": "PDF",
+      "name": "Eingefügten Text verschieben und mit Entf löschen",
+      "ok": true,
+      "detail": "verschoben um 65 pt, danach gelöscht",
+      "ms": 572,
+      "shots": []
+    },
+    {
+      "group": "PDF",
+      "name": "Werkzeugleiste bleibt beim Scrollen sichtbar",
+      "ok": true,
+      "detail": "nach 4035 px Scrollen noch oben",
+      "ms": 312,
+      "shots": []
+    },
+    {
+      "group": "PDF",
+      "name": "Rückgängig und Zoom",
+      "ok": true,
+      "detail": "Rückgängig ok · Zoom 1100 → 1320 px",
+      "ms": 1360,
+      "shots": []
+    },
+    {
+      "group": "PDF",
+      "name": "Seite drehen und Seite löschen",
+      "ok": true,
+      "detail": "Seite 3 gedreht (90°), dann gelöscht → 2 Seiten",
+      "ms": 1791,
+      "shots": []
+    },
+    {
+      "group": "PDF",
+      "name": "Echte Schuldatei (Topologien): Text ändern und markieren",
+      "ok": true,
+      "detail": "Überschrift geändert, im PDF-Text gefunden",
+      "ms": 1585,
+      "shots": [
+        {
+          "name": "007.png",
+          "label": "Echte PDF-Datei bearbeitet"
+        }
+      ]
+    },
+    {
+      "group": "PDF",
+      "name": "Links im PDF: Webseite, Sprung im Dokument, andere Datei, Adresse im Text",
+      "ok": true,
+      "detail": "5 Links erkannt · Web, Text-Adresse und E-Mail geöffnet · Sprung zu Seite 2 · Datei-Link öffnet Formular.pdf in der App",
+      "ms": 2679,
+      "shots": [
+        {
+          "name": "008.png",
+          "label": "PDF-Link: zu Seite 2 gesprungen"
+        }
+      ]
+    }
+  ]
+}
