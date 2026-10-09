@@ -26,6 +26,7 @@ Alles bleibt auf deinem Computer. Die App liest und speichert direkt in deinem O
 ### 📕 PDF
 - PDFs anzeigen, Text markieren und kopieren
 - **Formulare ausfüllen**: Textfelder, Kästchen, Auswahllisten, Optionsfelder
+- **Übersetzung beim Drüberfahren**: Hat ein Wort im PDF einen Tooltip (z. B. die Englisch-Arbeitsblätter), zeigt eine Karte Deutsch, eine englische Erklärung und die Wortverbindung. Markieren und Links funktionieren trotzdem.
 - Vorhandenen Text ändern oder neuen Text schreiben
 - Abdecken, Markieren, Zeichnen und Bilder einfügen (z. B. eine Unterschrift)
 - Seiten drehen und löschen, zoomen, Rückgängig (Strg+Z)
@@ -35,13 +36,35 @@ Alles bleibt auf deinem Computer. Die App liest und speichert direkt in deinem O
   - Links auf andere Dateien im Lernordner öffnen sich direkt in der App
   - Auch Adressen, die nur als Text im PDF stehen (z. B. `www.beispiel.de`), sind anklickbar
 
+### 🖼️ Fotos & Bilder
+- Fotos (`.jpg`, `.png`, `.webp`, `.bmp`, `.gif`, `.avif`) direkt in der App bearbeiten
+- **Drehen** (links/rechts), **Spiegeln** und **Zuschneiden** (frei oder 1:1, 4:3, 16:9, A4)
+- **Zeichnen** mit Stift und Textmarker, **Pfeile**, Rahmen und Kreise, **Text** schreiben, mit Farbe und Größe
+- **Abdecken**: Antworten auf einem fotografierten Arbeitsblatt verschwinden in der Papierfarbe, damit du es neu üben kannst
+- **Verpixeln**, um Namen oder Gesichter unkenntlich zu machen
+- **Anpassen**: Helligkeit, Kontrast und Farbe, dazu „Dokument-Scan“, damit Fotos von Arbeitsblättern oder der Tafel wie eingescannt aussehen
+- Gezeichnetes bleibt bis zum Verlassen verschiebbar und löschbar (Radierer, Entf), mit Rückgängig (Strg+Z) und Wiederholen (Strg+Y)
+- Zoomen (Strg+Mausrad), mit **←/→** durch alle Bilder im Ordner blättern
+- **Speichern** überschreibt das Bild (das Original wird vorher gesichert), **Als Kopie** legt z. B. `Foto (bearbeitet).jpg` an. GIF, BMP und AVIF werden als PNG-Kopie gespeichert.
+- Bilder in Seiten haben einen Knopf **✏️ Bearbeiten**, **↩ Zurück zur Seite** bringt dich danach zurück
+- Funktioniert auch mit Stift oder Finger (z. B. auf einem Surface)
+
+### 📄 Textdateien (`.txt`) und Code
+- Direkt in der App schreiben, wird automatisch gespeichert
+- **Strg+A** markiert immer den ganzen Text, auch wenn du vorher woanders hingeklickt hast. **📋 Alles kopieren** kopiert alles mit einem Klick.
+- **Suchen** (Strg+F) mit farbig markierten Treffern, **Ersetzen** (Strg+H) einzeln oder alle auf einmal (Strg+Z macht es rückgängig)
+- **Zeilenumbruch** an/aus, **Schrift** normal oder Festbreite (für Code), **Schriftgröße** mit A−/A+, Strg+Plus/Minus oder Strg+Mausrad
+- Unten stehen Zeile, Spalte, Wörter und Zeichen, bei markiertem Text auch dessen Wörter und Zeichen
+- Tab rückt markierte Zeilen ein, Umschalt+Tab rückt sie aus
+- `.txt` öffnet in normaler Schrift mit Zeilenumbruch, Code-Dateien in Festbreitenschrift ohne Umbruch. Die App merkt sich deine Einstellung.
+
 ### 📘 Word, 📗 Excel, 📙 PowerPoint
 - Word-Dateien (`.docx`) anzeigen und direkt bearbeiten
 - Tabellen (`.xlsx`, `.csv`) mit allen Blättern anzeigen
 - Präsentationen (`.pptx`) anzeigen
 
 ### 🛟 Sicherheit
-- Bevor ein Dokument zum ersten Mal geändert wird, legt die App automatisch eine **Sicherungskopie** an (außerhalb von OneDrive)
+- Bevor ein Dokument oder Foto zum ersten Mal geändert wird, legt die App automatisch eine **Sicherungskopie** an (außerhalb von OneDrive)
 - Hell- und Dunkelmodus
 
 ---
@@ -91,6 +114,7 @@ public/
   editor.js          Editor für Seiten (Notizen)
   markdown.js        Markdown lesen und schreiben
   docedit.js         Word- und PDF-Bearbeitung (inkl. PDF-Links)
+  imageedit.js       Fotos bearbeiten: drehen, zuschneiden, zeichnen, Text, anpassen
   style.css          Aussehen
   vendor/            pdf.js, pdf-lib, docx-preview, SheetJS, JSZip, fontkit
 desktop/             Programmfenster der EXE (C#, WinForms + WebView2)

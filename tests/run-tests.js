@@ -80,6 +80,10 @@ async function makePdf(file) {
   const rg = form.createRadioGroup('note');
   rg.addOptionToPage('gut', p1, { x: 110, y: 596, width: 14, height: 14 }); p1.drawText('gut', { x: 130, y: 598, size: 11, font });
   rg.addOptionToPage('mittel', p1, { x: 170, y: 596, width: 14, height: 14 }); p1.drawText('mittel', { x: 190, y: 598, size: 11, font });
+  // zwei Felder mit „automatischer“ Schriftgröße (0 Tf), klein und groß
+  const kurz = form.createTextField('kurz'); kurz.addToPage(p1, { x: 50, y: 480, width: 220, height: 22 });
+  const notiz = form.createTextField('notiz'); notiz.enableMultiline(); notiz.addToPage(p1, { x: 50, y: 300, width: 300, height: 120 });
+  for (const f of [kurz, notiz]) { f.acroField.setDefaultAppearance('/Helv 0 Tf 0 g'); form.markFieldAsClean(f.ref); }   // sonst schreibt doc.save() die Größe fest
   const p2 = doc.addPage([595, 842]);
   p2.drawText('Seite zwei Text zum Abdecken', { x: 72, y: 700, size: 14, font });
   p2.drawText('Markier mich bitte', { x: 72, y: 650, size: 14, font });
@@ -109,8 +113,49 @@ async function makeLinkPdf(file) {
   fs.writeFileSync(file, await doc.save());
 }
 
+// Wörter mit Übersetzung beim Drüberfahren: unsichtbare Schaltflächen mit Tooltip (/TU), wie in den Englisch-Arbeitsblättern
+async function makeTipPdf(file) {
+  const { PDFDocument, StandardFonts, PDFName, PDFString, PDFHexString } = PDFLib;
+  const doc = await PDFDocument.create();
+  const font = await doc.embedFont(StandardFonts.Helvetica);
+  const page = doc.addPage([595, 842]);
+  const words = ['Technology', 'applies', 'knowledge', 'gained'], size = 14, y = 700;
+  page.drawText(words.join(' '), { x: 50, y, size, font });
+  const ctx = doc.context, space = font.widthOfTextAtSize(' ', size);
+  const tips = { applies: 'applies → wendet an\nEN: uses something for a practical purpose\napplies knowledge → Wissen anwenden\nEN: uses what is known',
+                 knowledge: 'knowledge → Wissen\nEN: information and understanding\napplies knowledge → Wissen anwenden\nEN: uses what is known' };
+  let x = 50; const widgets = [];
+  for (const w of words) {
+    const wd = font.widthOfTextAtSize(w, size);
+    if (tips[w]) widgets.push(ctx.register(ctx.obj({ Type: 'Annot', Subtype: 'Widget', FT: 'Btn', Ff: 65536, T: PDFString.of('tt_' + w), TU: PDFHexString.fromText(tips[w]),
+      Rect: [x, y - 4, x + wd, y + size], F: 4, H: 'N', MK: {}, P: page.ref })));
+    x += wd + space;
+  }
+  // „knowledge“ ist zusätzlich ein Link (wie die gelben Vokabeln, die zum Wortschatz springen)
+  const kx = 50 + font.widthOfTextAtSize('Technology applies ', size), kw = font.widthOfTextAtSize('knowledge', size);
+  const link = ctx.register(ctx.obj({ Type: 'Annot', Subtype: 'Link', Rect: [kx, y - 4, kx + kw, y + size], Border: [0, 0, 0], A: { S: 'URI', URI: PDFString.of('https://schule.example.org/knowledge') } }));
+  page.node.set(PDFName.of('Annots'), ctx.obj([link, ...widgets]));
+  doc.catalog.set(PDFName.of('AcroForm'), ctx.obj({ Fields: widgets }));
+  fs.writeFileSync(file, await doc.save());
+}
+
+// 24-Bit-BMP (kann der Browser nur lesen, nicht schreiben): grün, oben links ein rotes Feld
+function makeBmp(file, w, h) {
+  const row = Math.ceil(w * 3 / 4) * 4, size = 54 + row * h, buf = Buffer.alloc(size);
+  buf.write('BM', 0); buf.writeUInt32LE(size, 2); buf.writeUInt32LE(54, 10); buf.writeUInt32LE(40, 14);
+  buf.writeInt32LE(w, 18); buf.writeInt32LE(h, 22); buf.writeUInt16LE(1, 26); buf.writeUInt16LE(24, 28); buf.writeUInt32LE(row * h, 34);
+  for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) {
+    const o = 54 + y * row + x * 3, top = y >= h - h / 4;          // Zeilen stehen von unten nach oben in der Datei
+    const [r, g, b] = top && x < w / 4 ? [220, 0, 0] : [40, 160, 60];
+    buf[o] = b; buf[o + 1] = g; buf[o + 2] = r;
+  }
+  fs.writeFileSync(file, buf);
+}
+
 async function setupFixtures() {
   fs.mkdirSync(P('Notizen'), { recursive: true });
+  fs.mkdirSync(P('Bilder'), { recursive: true });
+  makeBmp(P('Bilder', 'Alt.bmp'), 60, 40);
   fs.mkdirSync(P('Dateien'), { recursive: true });
   fs.mkdirSync(P('Word'), { recursive: true });
   fs.mkdirSync(P('PDF'), { recursive: true });
@@ -121,6 +166,9 @@ async function setupFixtures() {
   await makeDocx(P('Word', 'Arbeitsblatt.docx'));
   await makePdf(P('PDF', 'Formular.pdf'));
   await makeLinkPdf(P('PDF', 'Links.pdf'));
+  await makeTipPdf(P('PDF', 'Uebersetzung.pdf'));
+  const english = path.join(SCHULE, 'Jahr3', 'English', 'LS1', '01 Technological Progress_interactive.pdf');
+  if (fs.existsSync(english)) fs.copyFileSync(english, P('PDF', 'Technological Progress (echte Datei).pdf'));
   const quiz = path.join(SCHULE, 'Jahr3', 'FU-IT', 'Netzwerktechnik_Quiz_Erklaerungen.docx');
   if (fs.existsSync(quiz)) fs.copyFileSync(quiz, P('Word', 'Quiz (echte Datei).docx'));
   const topo = path.join(SCHULE, 'IT-Tec', 'IT-Tec', 'Jahr 1', '01_Topologien_AB.pdf');
@@ -155,7 +203,7 @@ async function js(expr) {
   if (r.result?.exceptionDetails) throw new Error('JS: ' + (r.result.exceptionDetails.exception?.description || r.result.exceptionDetails.text).split('\n')[0]);
   return r.result?.result?.value;
 }
-const KEYS = { Enter: 13, Escape: 27, Tab: 9, Backspace: 8, Delete: 46, ArrowUp: 38, ArrowDown: 40, ArrowLeft: 37, ArrowRight: 39, z: 90, y: 89, b: 66, c: 67 };
+const KEYS = { Enter: 13, Escape: 27, Tab: 9, Backspace: 8, Delete: 46, ArrowUp: 38, ArrowDown: 40, ArrowLeft: 37, ArrowRight: 39, z: 90, y: 89, b: 66, c: 67, a: 65, f: 70, h: 72 };
 async function key(k, mods = 0) {
   const code = k.length === 1 ? 'Key' + k.toUpperCase() : k;
   // Strg+C: dem Browser ausdrücklich den Kopier-Befehl mitgeben (wie bei einem echten Tastendruck)
@@ -191,6 +239,7 @@ window.T = {
   press(sel) { const b = typeof sel === 'string' ? document.querySelector(sel) : sel; b.dispatchEvent(new MouseEvent('mousedown', { bubbles: true, cancelable: true })); b.click(); return true; },
   menuClick(label) { const b = [...document.querySelectorAll('#menu .m-item')].find(x => x.textContent.includes(label)); if (!b) return false; b.click(); return true; },
   docxEl: (t, exact) => [...document.querySelectorAll('.docx-editable')].find(e => exact ? e.textContent.trim() === t : e.textContent.includes(t)),
+  imgPoint(x, y) { const ed = __lern.S.bin.ed, r = ed.stack.getBoundingClientRect(); return [r.left + x / ed.W * r.width, r.top + y / ed.H * r.height]; },
   pdfPoint(page, x, y) { const pg = __lern.S.bin.ed.pages[page - 1]; const [vx, vy] = pg.vp.convertToViewportPoint(x, y); const r = pg.box.getBoundingClientRect(); return [r.left + vx, r.top + vy]; },
   scrollToPdf(page, y) {
     const pg = __lern.S.bin.ed.pages[page - 1]; const v = document.getElementById('view');
@@ -266,6 +315,36 @@ async function pdfText(file, pageNo) {
   return js(`(async () => { const d = await pdfjsLib.getDocument({ data: new Uint8Array(await (await fetch('/raw?path=' + encodeURIComponent(${JSON.stringify(file)}) + '&t=' + Date.now())).arrayBuffer()) }).promise;
     const out = []; for (let i = 1; i <= d.numPages; i++) { if (${pageNo || 0} && i !== ${pageNo || 0}) continue; const p = await d.getPage(i); out.push((await p.getTextContent()).items.map(x => x.str).join(' ')); } return out.join(' \\n '); })()`);
 }
+
+// Testbild im Browser malen und in den Testordner schreiben: Papierfarbe, rotes Feld oben links, dunkler Text in der Mitte
+async function makeImage(file, w, h, type = 'image/png') {
+  return js(`(async () => { const c = document.createElement('canvas'); c.width = ${w}; c.height = ${h}; const g = c.getContext('2d');
+    g.fillStyle = '#f4f1e8'; g.fillRect(0, 0, ${w}, ${h}); g.fillStyle = '#d00000'; g.fillRect(0, 0, ${w / 4}, ${h / 4});
+    g.fillStyle = '#202020'; g.font = 'bold ${Math.round(h / 20)}px Arial'; g.textAlign = 'center'; g.fillText('Antwort: 42', ${w / 2}, ${h / 2});
+    const b = await new Promise(r => c.toBlob(r, '${type}', 0.95));
+    return (await fetch('/api/write?path=' + encodeURIComponent(${JSON.stringify(file)}), { method: 'POST', body: b })).ok; })()`);
+}
+const LOAD_IMG = file => `const blob = await (await fetch('/raw?path=' + encodeURIComponent(${JSON.stringify(file)}) + '&t=' + Date.now())).blob(); const bmp = await createImageBitmap(blob);
+  const c = document.createElement('canvas'); c.width = bmp.width; c.height = bmp.height; const g = c.getContext('2d'); g.drawImage(bmp, 0, 0);`;
+// Gespeichertes Bild laden: Größe, Dateiformat und Farben an Punkten (Anteile 0…1)
+async function imageInfo(file, pts = []) {
+  return js(`(async () => { ${LOAD_IMG(file)} const head = [...new Uint8Array(await blob.slice(0, 4).arrayBuffer())];
+    const px = ${JSON.stringify(pts)}.map(([x, y]) => [...g.getImageData(Math.min(bmp.width - 1, Math.floor(x * bmp.width)), Math.min(bmp.height - 1, Math.floor(y * bmp.height)), 1, 1).data].slice(0, 3));
+    return { w: bmp.width, h: bmp.height, png: head[0] === 0x89 && head[1] === 0x50, jpg: head[0] === 0xff && head[1] === 0xd8, px }; })()`);
+}
+// Pixel in einem Bereich des gespeicherten Bildes zählen (Bildkoordinaten)
+async function imagePixels(file, x1, y1, x2, y2) {
+  return js(`(async () => { ${LOAD_IMG(file)} const d = g.getImageData(${x1}, ${y1}, ${x2 - x1}, ${y2 - y1}).data; let red = 0, dark = 0, light = 0;
+    for (let i = 0; i < d.length; i += 4) { const [r, gg, b] = [d[i], d[i + 1], d[i + 2]]; if (r > 150 && gg < 90 && b < 90) red++; if (r + gg + b < 200) dark++; if (r > 200 && gg > 200 && b > 200) light++; }
+    return { red, dark, light, total: d.length / 4 }; })()`);
+}
+async function openImage(file) {
+  await nav(file);
+  await waitJs(`!!(__lern.S.bin && __lern.S.bin.path === ${JSON.stringify(file)} && __lern.S.bin.ed.base && document.querySelector('.img-stack'))`, 10000, 'Bildeditor öffnet nicht: ' + file);
+  await sleep(150);
+}
+const isRed = p => p[0] > 150 && p[1] < 90 && p[2] < 90;
+const setImgSize = i => js(`const s = document.querySelector('.img-toolbar [data-size]'); s.value = '${i}'; s.dispatchEvent(new Event('change')); true`);
 
 function wordValidate(files) {
   const ps = `[Console]::OutputEncoding = [Text.Encoding]::UTF8; $ErrorActionPreference='Stop'; $out=@(); $w=$null
@@ -556,6 +635,31 @@ async function run() {
     return 'Speichern und Aktualisieren in beide Richtungen';
   });
 
+  await scenario('Dateien', 'Textdatei (.txt): Strg+A markiert alles, Suchen & Ersetzen, Alles kopieren', async () => {
+    const text = 'Erste Zeile mit VPN\nZweite Zeile\n\nVPN und VDI im Vergleich – ' + 'ein langer Satz, der umbrechen muss. '.repeat(8) + '\nLetzte Zeile';
+    fs.writeFileSync(P('Dateien', 'Notiz.txt'), text);
+    await nav('Dateien/Notiz.txt'); await waitJs(`!!document.querySelector('.txt-edit textarea')`);
+    const ta = `document.querySelector('.txt-edit textarea')`;
+    expect(await js(`getComputedStyle(${ta}).whiteSpace === 'pre-wrap'`), 'kein Zeilenumbruch bei .txt');
+    // Strg+A, nachdem woanders hingeklickt wurde → trotzdem der ganze Text (nicht die Oberfläche)
+    await js(`document.activeElement.blur(); true`);
+    await key('a', 2);
+    expect(await js(`${ta}.selectionStart === 0 && ${ta}.selectionEnd === ${ta}.value.length`), 'Strg+A markiert nicht den ganzen Text');
+    await key('f', 2); await type('vpn');
+    await waitJs(`document.querySelector('.txt-find [data-count]').textContent === '1 von 2'`, 3000, 'Trefferzahl falsch');
+    expect(await js(`CSS.highlights.get('txt-hit').size + CSS.highlights.get('txt-cur').size === 2`), 'Treffer nicht markiert');
+    await shot('Textdatei: Suchen');
+    await key('h', 2);
+    await js(`const r = document.querySelector('.txt-find [data-r]'); r.value = 'Tunnel'; document.querySelector('.txt-find [data-a=repAll]').click(); true`);
+    await fileHas('Dateien/Notiz.txt', 'Erste Zeile mit Tunnel', 'Tunnel und VDI');
+    await key('Escape');
+    expect(await js(`document.querySelector('.txt-find').hidden && !CSS.highlights.has('txt-hit')`), 'Suche nicht geschlossen');
+    await js(`navigator.clipboard.writeText(''); document.querySelector('.txt-bar [data-a=copy]').click(); true`);
+    const clip = await until(() => js(`navigator.clipboard.readText()`), 3000, 'Zwischenablage leer');
+    expect(clip.replace(/\r\n/g, '\n') === read('Dateien/Notiz.txt'), 'Alles kopieren: ' + clip.slice(0, 60));
+    return await js(`document.querySelector('.txt-status [data-stats]').textContent`);
+  });
+
   await scenario('Dateien', 'HTML-Datei als Vorschau: CSS, Bild und Skript werden geladen', async () => {
     await js(`if (!window.__msgsInit) { window.__msgsInit = true; window.__msgs = []; addEventListener('message', e => { if (e.data && e.data.lern) __msgs.push(e.data); }); } __msgs.length = 0; localStorage.setItem('lern.htmlMode', '"preview"'); true`);
     await nav('Web/index.html');
@@ -732,7 +836,8 @@ async function run() {
     await openDocx(Q);
     await js(`const v = document.getElementById('view'); v.scrollTop = v.scrollHeight; true`); await sleep(300);
     const r = await js(`(() => { const b = document.querySelector('.doc-toolbar').getBoundingClientRect(), v = document.getElementById('view').getBoundingClientRect(); return [Math.round(b.top - v.top), Math.round(b.height), document.getElementById('view').scrollTop]; })()`);
-    expect(r[2] > 500 && Math.abs(r[0]) <= 1 && r[1] >= 30, `Leiste: Abstand ${r[0]} px, Höhe ${r[1]} px, gescrollt ${r[2]} px`);
+    // ohne die echte Schuldatei ist das Test-Dokument nur etwa eine Seite lang
+    expect(r[2] > (Q === AB ? 200 : 500) && Math.abs(r[0]) <= 1 && r[1] >= 30, `Leiste: Abstand ${r[0]} px, Höhe ${r[1]} px, gescrollt ${r[2]} px`);
     await shot('Word: ganz nach unten gescrollt, Leiste bleibt oben');
     await openDocx(AB);
     return `nach ${r[2]} px Scrollen noch oben, ${r[1]} px hoch`;
@@ -839,6 +944,21 @@ async function run() {
     const v = { name: form.getTextField('name').getText(), fertig: form.getCheckBox('fertig').isChecked(), klasse: form.getDropdown('klasse').getSelected()[0], note: form.getRadioGroup('note').getSelected() };
     expect(v.name === 'Max Müller' && v.fertig && v.klasse === 'FI12' && v.note === 'mittel', JSON.stringify(v));
     return JSON.stringify(v);
+  });
+
+  await scenario('PDF', 'Formular: gleiche Schrift in kleinen und großen Feldern, Zeilenumbrüche bleiben', async () => {
+    await openPdf(FP);
+    const [a, b] = await js(`['kurz', 'notiz'].map(n => getComputedStyle(document.querySelector('.pdf-field[data-field="' + n + '"]')).fontSize)`);
+    expect(a === b, 'Schrift kurz ' + a + ' / notiz ' + b + ' (sollte gleich sein)');
+    await js(`const t = document.querySelector('.pdf-field[data-field="notiz"]'); t.focus(); t.value = 'Zeile eins\\nZeile zwei';
+      t.dispatchEvent(new Event('input', { bubbles: true })); true`);
+    await saveBin();
+    const doc = await PDFLib.PDFDocument.load(fs.readFileSync(P(FP)));
+    const f = doc.getForm().getTextField('notiz');
+    const text = f.getText(), da = f.acroField.getWidgets()[0].getDefaultAppearance() ?? f.acroField.getDefaultAppearance();
+    expect(text === 'Zeile eins\nZeile zwei', 'gespeichert: ' + JSON.stringify(text));
+    expect(/\s10 Tf/.test(da), 'Schriftgröße im PDF: ' + da + ' (erwartet 10)');
+    return `Schrift ${a} in beiden Feldern · gespeichert: ${JSON.stringify(text)} · ${da}`;
   });
 
   await scenario('PDF', 'Vorhandenen Text ändern', async () => {
@@ -1002,6 +1122,251 @@ async function run() {
     p = await at('Formular.pdf'); await click(p[0], p[1]);
     await waitJs(`__lern.S.bin && __lern.S.bin.path === 'PDF/Formular.pdf'`, 8000, 'Datei-Link öffnet Formular.pdf nicht');
     return `${n} Links erkannt · Web, Text-Adresse und E-Mail geöffnet · Sprung zu Seite 2 · Datei-Link öffnet Formular.pdf in der App`;
+  });
+
+  // Maus bewegen, ohne dass eine Taste gedrückt ist (mouse() meldet beim Bewegen gedrückte Taste)
+  const hover = (x, y) => send('Input.dispatchMouseEvent', { type: 'mouseMoved', x, y, buttons: 0 });
+  const tipText = () => js(`(() => { const t = document.querySelector('.pdf-tip'); return t && !t.hidden ? t.innerText : ''; })()`);
+  await scenario('PDF', 'Übersetzung beim Drüberfahren: Wort und Wortverbindung, Markieren geht weiter', async () => {
+    await openPdf('PDF/Uebersetzung.pdf');
+    await js(`document.querySelector('[data-t=select]').click(); true`);
+    await pdfReady(1, 700);
+    const tips = await js(`__lern.S.bin.ed.pages[0].tips.length`);
+    expect(tips === 2, tips + ' Tooltips erkannt (erwartet 2)');
+    // Mitte von „applies“: hinter „Technology “ (Helvetica 14 pt)
+    let p = await js(`T.pdfPoint(1, 50 + 77 + 4 + 23, 705)`);
+    await hover(p[0], p[1]);
+    let t = await until(tipText, 3000, 'Karte erscheint nicht über „applies“');
+    for (const s of ['applies', 'wendet an', 'uses something for a practical purpose', 'applies knowledge', 'Wissen anwenden']) expect(t.includes(s), 'Karte zeigt nicht: ' + s + ' · ' + t);
+    expect(await js(`document.querySelectorAll('.pdf-tip .tip-sec').length === 2 && !!document.querySelector('.pdf-tip-mark')`), 'Wort und Wortverbindung nicht getrennt oder Wort nicht hervorgehoben');
+    await shot('Übersetzung über „applies“');
+    p = await js(`T.pdfPoint(1, 50 + 77 + 4 + 47 + 4 + 30, 705)`);
+    await hover(p[0], p[1]);
+    t = await until(async () => { const x = await tipText(); return x.startsWith('knowledge') ? x : ''; }, 3000, 'Karte wechselt nicht zu „knowledge“ (Wort mit Link)');
+    await js(`window.__opened = []; window.open = u => { __opened.push(String(u)); return null; }; true`);
+    await click(p[0], p[1]); await sleep(200);
+    expect((await js(`__opened`))[0] === 'https://schule.example.org/knowledge', 'Link unter der Übersetzung reagiert nicht: ' + JSON.stringify(await js(`__opened`)));
+    p = await js(`T.pdfPoint(1, 400, 400)`);
+    await hover(p[0], p[1]); await sleep(150);
+    expect(!(await tipText()), 'Karte bleibt neben dem Text stehen');
+    // Text unter den Tooltips lässt sich weiter markieren
+    const [a, b] = [await js(`T.pdfPoint(1, 46, 705)`), await js(`T.pdfPoint(1, 360, 705)`)];
+    await drag(a[0], a[1], b[0], b[1]);
+    const sel = await js(`getSelection().toString()`);
+    expect(sel.includes('applies knowledge'), 'Markiert: „' + sel + '“');
+    expect(!(await tipText()), 'Karte stört beim Markieren');
+    await js(`getSelection().removeAllRanges(); true`);
+    return `${tips} Wörter mit Übersetzung · Karte mit DE/EN und Wortverbindung · wechselt von Wort zu Wort · Link unter dem Wort funktioniert · verschwindet daneben · Markieren: „${sel.trim()}“`;
+  });
+
+  if (exists('PDF/Technological Progress (echte Datei).pdf')) {
+    await scenario('PDF', 'Echtes Englisch-Arbeitsblatt: Übersetzung über jedem Wort', async () => {
+      await openPdf('PDF/Technological Progress (echte Datei).pdf');
+      await js(`document.querySelector('[data-t=select]').click(); true`);
+      await pdfReady(1, 600);
+      const n = await js(`__lern.S.bin.ed.pages[0].tips.length`);
+      expect(n > 400, n + ' Tooltips auf Seite 1');
+      // „commonplace“ (Zeile 5) und „drawing“ in „drawing conclusions from“ (Zeile 19)
+      const centre = word => js(`(() => { const t = __lern.S.bin.ed.pages[0].tips.find(t => t.text.startsWith(${JSON.stringify(word)} + ' →')); const b = __lern.S.bin.ed.pages[0].box.getBoundingClientRect(); return [b.left + t.r.left + t.r.width / 2, b.top + t.r.top + t.r.height / 2]; })()`);
+      let p = await centre('commonplace');
+      await hover(p[0], p[1]);
+      let t = await until(tipText, 3000, 'Karte erscheint nicht über „commonplace“');
+      expect(t.includes('alltäglich'), 'commonplace: ' + t);
+      await shot('Englisch-Arbeitsblatt: Übersetzung über „commonplace“');
+      await js(`T.scrollToPdf(1, 460)`); await sleep(200);
+      p = await centre('drawing');
+      await hover(p[0], p[1]);
+      t = await until(async () => { const x = await tipText(); return x.includes('Schlussfolgerungen') ? x : ''; }, 3000, 'Karte für „drawing“ fehlt');
+      await shot('Englisch-Arbeitsblatt: Wortverbindung „drawing conclusions from“');
+      return `${n} Wörter mit Übersetzung auf Seite 1 · „commonplace“ → alltäglich · „drawing conclusions from“ → Schlussfolgerungen ziehen aus`;
+    });
+  }
+
+  // ------------------------------------------------ Bilder
+  const TAFEL = 'Bilder/Tafel.png', FOTO = 'Bilder/Foto.jpg';
+  await scenario('Bild', 'Foto öffnen: Bearbeitungsleiste, ganzes Bild sichtbar', async () => {
+    await makeImage(TAFEL, 800, 600); await makeImage(FOTO, 1200, 900, 'image/jpeg'); await makeImage('Bilder/Zweites.png', 400, 300);
+    await openImage(TAFEL);
+    const r = await js(`(() => { const ed = T.bin().ed, s = ed.stage.getBoundingClientRect(), k = ed.stack.getBoundingClientRect();
+      return { w: ed.W, h: ed.H, tools: document.querySelectorAll('.img-toolbar [data-t]').length, fits: k.width <= s.width && k.height <= s.height, zoom: ed.zoom }; })()`);
+    expect(r.w === 800 && r.h === 600, `Größe ${r.w}×${r.h}`);
+    expect(r.tools >= 10 && r.fits, JSON.stringify(r));
+    await shot('Foto im Bildeditor');
+    await js(`document.getElementById('themeBtn').click(); true`); await sleep(200);
+    await shot('Bildeditor im dunklen Design');
+    await js(`document.getElementById('themeBtn').click(); true`);
+    return `${r.w}×${r.h} px · ${r.tools} Werkzeuge · Zoom ${Math.round(r.zoom * 100)} %`;
+  });
+
+  await scenario('Bild', 'Drehen und Spiegeln, danach speichern (mit Sicherungskopie)', async () => {
+    await js(`document.querySelector('[data-act=rotr]').click(); true`);
+    expect(await js(`T.bin().ed.W === 600 && T.bin().ed.H === 800`), 'nicht gedreht');
+    await saveBin();
+    let i = await imageInfo(TAFEL, [[0.95, 0.05], [0.05, 0.05]]);
+    expect(i.png && i.w === 600 && i.h === 800, `gespeichert ${i.w}×${i.h}`);
+    expect(isRed(i.px[0]) && !isRed(i.px[1]), 'rotes Feld nach dem Drehen nicht oben rechts: ' + JSON.stringify(i.px));
+    await js(`document.querySelector('[data-act=fliph]').click(); true`);
+    await saveBin();
+    i = await imageInfo(TAFEL, [[0.95, 0.05], [0.05, 0.05]]);
+    expect(!isRed(i.px[0]) && isRed(i.px[1]), 'rotes Feld nach dem Spiegeln nicht oben links: ' + JSON.stringify(i.px));
+    const backup = fs.readdirSync(BACKUPS).find(f => f.endsWith('_Tafel.png'));
+    expect(backup, 'keine Sicherungskopie');
+    return `rechts gedreht → 600×800, rotes Feld oben rechts · gespiegelt → oben links · Sicherung: ${backup}`;
+  });
+
+  await scenario('Bild', 'Stift, Pfeil, Text und Verpixeln landen im gespeicherten Bild', async () => {
+    // Bild ist jetzt 600×800, rotes Feld oben links (150×200)
+    await js(`document.querySelector('[data-t=pen]').click(); true`);
+    let [a, b] = [await js(`T.imgPoint(100, 400)`), await js(`T.imgPoint(500, 430)`)];
+    await drag(a[0], a[1], b[0], b[1]);
+    await js(`document.querySelector('[data-t=arrow]').click(); true`);
+    [a, b] = [await js(`T.imgPoint(100, 700)`), await js(`T.imgPoint(450, 700)`)];
+    await drag(a[0], a[1], b[0], b[1]);
+    await js(`document.querySelector('[data-t=text]').click(); true`);
+    await setImgSize(3);
+    a = await js(`T.imgPoint(100, 560)`); await click(a[0], a[1]); await sleep(150);
+    await type('Hallo Foto');
+    await key('Escape');
+    await js(`document.querySelector('[data-t=pixel]').click(); true`);
+    [a, b] = [await js(`T.imgPoint(100, 150)`), await js(`T.imgPoint(250, 260)`)];
+    await drag(a[0], a[1], b[0], b[1]);
+    const types = await js(`T.bin().ed.objects.map(o => o.type + (o.text ? ':' + o.text : '')).join(', ')`);
+    expect(types === 'stroke, arrow, text:Hallo Foto, pixel', 'Objekte: ' + types);
+    await shot('Gezeichnet, Pfeil, Text und verpixelt');
+    await saveBin();
+    const pen = await imagePixels(TAFEL, 100, 395, 500, 440);
+    const arrow = await imagePixels(TAFEL, 100, 688, 452, 712);
+    const text = await imagePixels(TAFEL, 95, 530, 360, 600);
+    expect(pen.red > 300, `Stift: ${pen.red} rote Pixel`);
+    expect(arrow.red > 300, `Pfeil: ${arrow.red} rote Pixel`);
+    expect(text.red > 200, `Text: ${text.red} rote Pixel`);
+    return `Stift ${pen.red}, Pfeil ${arrow.red}, Text ${text.red} rote Pixel im gespeicherten Bild`;
+  });
+
+  await scenario('Bild', 'Gezeichnetes verschieben, löschen, Rückgängig und Wiederholen', async () => {
+    await js(`document.querySelector('[data-t=select]').click(); true`);
+    const textObj = `T.bin().ed.objects.find(o => o.type === 'text')`;
+    const x0 = await js(`${textObj}.x`);
+    const p = await js(`(() => { const o = ${textObj}; return T.imgPoint(o.x + 20, o.y + 15); })()`);
+    await drag(p[0], p[1], p[0] + 80, p[1] + 10);
+    const x1 = await js(`${textObj}.x`);
+    expect(x1 > x0 + 40, `x ${x0} → ${x1}`);
+    const n = () => js(`T.bin().ed.objects.length`);
+    await key('Delete'); expect(await n() === 3, 'nicht gelöscht: ' + await n());
+    await key('z', 2); expect(await n() === 4, 'Rückgängig: ' + await n());
+    await key('y', 2); expect(await n() === 3, 'Wiederholen: ' + await n());
+    await key('z', 2);
+    expect(await js(`!!${textObj} && __lern.S.bin.dirty`), 'Text fehlt nach Rückgängig');
+    return `Text um ${Math.round(x1 - x0)} px verschoben · Entf löscht · Strg+Z / Strg+Y`;
+  });
+
+  await scenario('Bild', 'Zuschneiden: Ecke ziehen, mit Enter übernehmen', async () => {
+    await js(`document.querySelector('[data-t=crop]').click(); true`);
+    await waitJs(`!document.querySelector('.img-crop').hidden`);
+    await sleep(300);   // die Zuschneide-Leiste macht die Fläche etwas kleiner – das Bild wird neu eingepasst
+    const h = await js(`(() => { const r = document.querySelector('.img-crop [data-h=se]').getBoundingClientRect(); return [r.left + r.width / 2, r.top + r.height / 2]; })()`);
+    const s = await js(`(() => { const r = T.bin().ed.stack.getBoundingClientRect(); return [r.width, r.height]; })()`);
+    await drag(h[0], h[1], h[0] - s[0] * 0.25, h[1] - s[1] * 0.25);
+    const crop = await js(`T.bin().ed.crop`);
+    expect(Math.abs(crop.w - 450) < 15 && Math.abs(crop.h - 600) < 15, 'Rahmen: ' + JSON.stringify(crop));
+    await shot('Zuschneiden');
+    await key('Enter');
+    const size = await js(`[T.bin().ed.W, T.bin().ed.H]`);
+    expect(Math.abs(size[0] - 450) < 15 && Math.abs(size[1] - 600) < 15, 'Größe nach dem Zuschneiden: ' + size);
+    await saveBin();
+    const i = await imageInfo(TAFEL);
+    expect(i.w === size[0] && i.h === size[1], `gespeichert ${i.w}×${i.h}, erwartet ${size}`);
+    return `600×800 → ${i.w}×${i.h} px`;
+  });
+
+  await scenario('Bild', 'Dokument-Scan macht das Foto schwarz-weiß und hell – JPEG bleibt JPEG', async () => {
+    await openImage(FOTO);
+    await js(`document.querySelector('[data-act=adjust]').click(); document.querySelector('[data-preset=scan]').click(); true`);
+    expect(await js(`T.bin().ed.filterCss()`) !== 'none', 'kein Filter');
+    await shot('Dokument-Scan');
+    await saveBin();
+    const i = await imageInfo(FOTO, [[0.05, 0.05], [0.9, 0.9]]);
+    const [red, paper] = i.px;
+    expect(i.jpg && i.w === 1200 && i.h === 900, JSON.stringify(i));
+    expect(Math.abs(red[0] - red[1]) < 14 && Math.abs(red[1] - red[2]) < 14, 'rotes Feld nicht grau: ' + red);
+    expect(paper.every(v => v > 245), 'Papier nicht weiß: ' + paper);
+    return `JPEG ${i.w}×${i.h} · Rot → ${red} · Papier → ${paper}`;
+  });
+
+  await scenario('Bild', 'Abdecken: Antwort verschwindet in der Papierfarbe', async () => {
+    // „Antwort: 42“ steht in der Bildmitte (1200×900, Schrift 45 px)
+    const before = await imagePixels(FOTO, 420, 400, 780, 470);
+    await js(`document.querySelector('[data-t=cover]').click(); true`);
+    const [a, b] = [await js(`T.imgPoint(380, 385)`), await js(`T.imgPoint(820, 480)`)];
+    await drag(a[0], a[1], b[0], b[1]);
+    expect(await js(`!!T.bin().ed.objects.find(o => o.type === 'cover' && o.fill)`), 'kein Abdeck-Rechteck');
+    await saveBin();
+    const after = await imagePixels(FOTO, 420, 400, 780, 470);
+    expect(before.dark > 200 && after.dark === 0 && after.light === after.total, `dunkle Pixel ${before.dark} → ${after.dark}, hell ${after.light}/${after.total}`);
+    return `dunkle Pixel der Antwort: ${before.dark} → ${after.dark}`;
+  });
+
+  await scenario('Bild', '„Als Kopie“: Original bleibt unverändert, Kopie wird geöffnet', async () => {
+    const F = 'Bilder/Zweites.png', orig = fs.readFileSync(P(F));
+    await openImage(F);
+    await js(`document.querySelector('[data-t=pen]').click(); true`);
+    await setImgSize(3);
+    const [a, b] = [await js(`T.imgPoint(50, 150)`), await js(`T.imgPoint(350, 160)`)];
+    await drag(a[0], a[1], b[0], b[1]);
+    await js(`document.querySelector('[data-copy]').click(); true`);
+    await waitJs(`!!(__lern.S.bin && __lern.S.bin.path === 'Bilder/Zweites (bearbeitet).png' && __lern.S.bin.ed.base)`, 10000, 'Kopie wird nicht geöffnet');
+    expect(Buffer.compare(orig, fs.readFileSync(P(F))) === 0, 'Original wurde verändert');
+    const px = await imagePixels('Bilder/Zweites (bearbeitet).png', 50, 140, 350, 170);
+    expect(px.red > 300, 'Strich fehlt in der Kopie: ' + px.red);
+    return `„Zweites (bearbeitet).png“ mit Strich (${px.red} rote Pixel), Original unverändert`;
+  });
+
+  await scenario('Bild', 'BMP: Bearbeitung wird als PNG-Kopie gespeichert', async () => {
+    const F = 'Bilder/Alt.bmp', orig = fs.readFileSync(P(F));
+    await openImage(F);
+    expect(await js(`document.querySelector('[data-save]').textContent.includes('PNG')`), 'Knopf heißt nicht „Als PNG speichern“');
+    await js(`document.querySelector('[data-act=rotr]').click(); document.querySelector('[data-save]').click(); true`);
+    await waitJs(`!!(__lern.S.bin && __lern.S.bin.path === 'Bilder/Alt (bearbeitet).png' && __lern.S.bin.ed.base)`, 10000, 'PNG-Kopie wird nicht geöffnet');
+    const i = await imageInfo('Bilder/Alt (bearbeitet).png', [[0.9, 0.05], [0.1, 0.05]]);
+    expect(i.png && i.w === 40 && i.h === 60, JSON.stringify(i));
+    expect(isRed(i.px[0]) && !isRed(i.px[1]), 'Drehung: ' + JSON.stringify(i.px));
+    expect(Buffer.compare(orig, fs.readFileSync(P(F))) === 0, 'BMP wurde verändert');
+    return 'Alt.bmp (60×40) gedreht → „Alt (bearbeitet).png“ (40×60), Original unverändert';
+  });
+
+  await scenario('Bild', 'GIF wird erst normal (animiert) gezeigt, „✏️ Bearbeiten“ öffnet den Editor', async () => {
+    fs.writeFileSync(P('Bilder', 'Animiert.gif'), Buffer.from('R0lGODlhAQABAIAAAP///wAAACH5BAEAAAAALAAAAAABAAEAAAICRAEAOw==', 'base64'));
+    await nav('Bilder/Animiert.gif');
+    await waitJs(`!!document.querySelector('.image-view img') && !__lern.S.bin`, 6000, 'GIF wird nicht angezeigt');
+    const btn = `[...document.querySelectorAll('#topButtons button')].find(b => b.textContent.includes('Bearbeiten'))`;
+    expect(await js(`!!${btn}`), 'kein „Bearbeiten“-Knopf');
+    await js(`${btn}.click(); true`);
+    await waitJs(`!!(__lern.S.bin && __lern.S.bin.path === 'Bilder/Animiert.gif' && __lern.S.bin.ed.base)`, 8000, 'Editor öffnet nicht');
+    return 'Vorschau → Bildeditor (Speichern als PNG-Kopie)';
+  });
+
+  await scenario('Bild', 'Mit ← → durch die Bilder im Ordner blättern', async () => {
+    await openImage(FOTO);
+    const sib = await js(`T.bin().ed.opts.siblings`);
+    expect(sib && sib.next && sib.prev, 'keine Nachbarbilder: ' + JSON.stringify(sib));
+    await key('ArrowRight');
+    await waitJs(`!!(__lern.S.bin && __lern.S.bin.path === ${JSON.stringify(sib.next)} && __lern.S.bin.ed.base)`, 8000, 'nicht weitergeblättert');
+    await key('ArrowLeft');
+    await waitJs(`!!(__lern.S.bin && __lern.S.bin.path === ${JSON.stringify(FOTO)} && __lern.S.bin.ed.base)`, 8000, 'nicht zurückgeblättert');
+    return `${FOTO} → ${sib.next} → zurück (${sib.total} Bilder im Ordner)`;
+  });
+
+  await scenario('Bild', 'Bild in einer Seite: „✏️ Bearbeiten“ öffnet den Bildeditor, „Zurück“ führt zur Seite', async () => {
+    await openNote('Notizen/Mit Foto.md', '# Tafelbild\n\n![Tafel](../Bilder/Tafel.png)\n');
+    await waitJs(`!!document.querySelector('.b-image [data-act=open]')`);
+    expect(await js(`document.querySelector('.b-image [data-act=open]').textContent.includes('Bearbeiten')`), 'kein Bearbeiten-Knopf');
+    await js(`T.press('.b-image [data-act=open]')`);
+    await waitJs(`!!(__lern.S.bin && __lern.S.bin.path === ${JSON.stringify(TAFEL)} && __lern.S.bin.ed.base)`, 8000, 'Bildeditor öffnet nicht');
+    const back = `[...document.querySelectorAll('#topButtons button')].find(b => b.textContent.includes('Zurück zur Seite'))`;
+    expect(await js(`!!${back}`), 'kein „Zurück zur Seite“');
+    await js(`${back}.click(); true`);
+    await waitJs(`!!(__lern.S.doc && __lern.S.doc.path === 'Notizen/Mit Foto.md')`, 6000, 'nicht zur Seite zurück');
+    return 'Seite → Bildeditor → zurück zur Seite';
   });
 
   // ------------------------------------------------ Abschluss

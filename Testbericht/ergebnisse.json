@@ -1,13 +1,13 @@
 {
-  "date": "2026-09-29T10:07:55.620Z",
-  "ms": 68318,
+  "date": "2026-10-08T10:17:21.326Z",
+  "ms": 84021,
   "results": [
     {
       "group": "Allgemein",
       "name": "App startet, Live-Verbindung zum Ordner steht",
       "ok": true,
       "detail": "Status: Live synchronisiert",
-      "ms": 150,
+      "ms": 50,
       "shots": [
         {
           "name": "001.png",
@@ -20,7 +20,7 @@
       "name": "Neue Seite über „Neue Seite“ anlegen und Titel = Dateiname",
       "ok": true,
       "detail": "Datei „Testseite Notizen.md“ angelegt",
-      "ms": 425,
+      "ms": 551,
       "shots": []
     },
     {
@@ -28,7 +28,7 @@
       "name": "Alle Blocktypen per Markdown-Kürzel",
       "ok": true,
       "detail": "24 Zeilen Markdown erzeugt",
-      "ms": 1194,
+      "ms": 1187,
       "shots": [
         {
           "name": "002.png",
@@ -41,7 +41,7 @@
       "name": "Slash-Menü: filtern und Block einfügen",
       "ok": true,
       "detail": "Filter „num“ → 1.Nummerierte ListeListe mit Nummern",
-      "ms": 1012,
+      "ms": 1020,
       "shots": [
         {
           "name": "003.png",
@@ -54,7 +54,7 @@
       "name": "Fett, kursiv, Code, Markierung und Link über die Formatierungsleiste",
       "ok": true,
       "detail": "**fett** *kursiv* `code` ==mark== [link](https://example.org)",
-      "ms": 1355,
+      "ms": 1343,
       "shots": [
         {
           "name": "004.png",
@@ -67,7 +67,7 @@
       "name": "Tabelle: anlegen, mit Tab ausfüllen, Zeile und Spalte hinzufügen",
       "ok": true,
       "detail": "4 Zeilen × 4 Spalten gespeichert und wieder geladen",
-      "ms": 1732,
+      "ms": 1723,
       "shots": [
         {
           "name": "005.png",
@@ -80,7 +80,7 @@
       "name": "Rückgängig (Strg+Z) und Wiederholen (Strg+Y) – auch für Blöcke",
       "ok": true,
       "detail": "Rückgängig: „Erster Absatz|Zweiter Absatz“ → „Erster Absatz“ · Wiederholen: „Erster Absatz|Zweiter Absatz|Dritter“",
-      "ms": 2195,
+      "ms": 2171,
       "shots": []
     },
     {
@@ -88,15 +88,15 @@
       "name": "Enter teilt, Rücktaste verbindet, Tab rückt Listen ein",
       "ok": true,
       "detail": "Teilen, Verbinden und Einrücken gespeichert",
-      "ms": 2249,
+      "ms": 2248,
       "shots": []
     },
     {
       "group": "Seiten",
       "name": "Bild per Strg+V einfügen und Größe ändern",
       "ok": true,
-      "detail": "![](Bilder/Bild-20260929100657.png \"width=50%\") · Datei: Notizen/Bilder/Bild-20260929100657.png",
-      "ms": 1140,
+      "detail": "![](Bilder/Bild-20261008101607.png \"width=50%\") · Datei: Notizen/Bilder/Bild-20261008101607.png",
+      "ms": 1162,
       "shots": [
         {
           "name": "006.png",
@@ -109,15 +109,15 @@
       "name": "Block über das ⋮⋮-Menü nach unten verschieben",
       "ok": true,
       "detail": "Neue Reihenfolge: B, A, C",
-      "ms": 931,
+      "ms": 902,
       "shots": []
     },
     {
       "group": "Seiten",
       "name": "Symbol (Emoji) und Titelbild setzen",
       "ok": true,
-      "detail": "--- icon: 📖 cover: gradient:9 ---",
-      "ms": 1167,
+      "detail": "--- icon: 📖 cover: gradient:4 ---",
+      "ms": 1138,
       "shots": [
         {
           "name": "007.png",
@@ -130,7 +130,7 @@
       "name": "Änderung im Ordner (außerhalb der App) erscheint sofort",
       "ok": true,
       "detail": "Editor hat sich automatisch aktualisiert",
-      "ms": 544,
+      "ms": 528,
       "shots": []
     },
     {
@@ -138,7 +138,7 @@
       "name": "Konflikt: außen geändert während ungespeicherter Eingabe → Nachfrage",
       "ok": true,
       "detail": "Banner erschienen, „Meine Version behalten“ gespeichert",
-      "ms": 791,
+      "ms": 753,
       "shots": [
         {
           "name": "008.png",
@@ -151,7 +151,7 @@
       "name": "Fremde Markdown-Datei wird beim bloßen Öffnen nicht verändert",
       "ok": true,
       "detail": "Tabellen, HTML und Fußnoten bleiben Byte für Byte erhalten",
-      "ms": 2293,
+      "ms": 2296,
       "shots": []
     },
     {
@@ -159,7 +159,7 @@
       "name": "Markdown hin und zurück (15 Muster)",
       "ok": true,
       "detail": "15 Muster identisch",
-      "ms": 7,
+      "ms": 6,
       "shots": []
     },
     {
@@ -167,7 +167,7 @@
       "name": "Neuen Ordner anlegen (Dialog)",
       "ok": true,
       "detail": "Ordner „Testordner“ angelegt",
-      "ms": 520,
+      "ms": 518,
       "shots": [
         {
           "name": "009.png",
@@ -180,7 +180,7 @@
       "name": "Ordner per Rechtsklick umbenennen",
       "ok": true,
       "detail": "„Testordner“ → „Testordner neu“",
-      "ms": 230,
+      "ms": 232,
       "shots": [
         {
           "name": "010.png",
@@ -193,7 +193,7 @@
       "name": "Datei per Drag & Drop in einen Ordner verschieben",
       "ok": true,
       "detail": "Verschoben nach „Testordner neu“",
-      "ms": 372,
+      "ms": 401,
       "shots": []
     },
     {
@@ -201,7 +201,7 @@
       "name": "Dateien vom PC in die Ordneransicht ziehen (Hochladen)",
       "ok": true,
       "detail": "2 Dateien hochgeladen und angezeigt",
-      "ms": 801,
+      "ms": 853,
       "shots": [
         {
           "name": "011.png",
@@ -214,7 +214,7 @@
       "name": "Suche findet Dateien in Unterordnern",
       "ok": true,
       "detail": "2 Treffer für „hochgeladen“",
-      "ms": 300,
+      "ms": 320,
       "shots": [
         {
           "name": "012.png",
@@ -227,7 +227,7 @@
       "name": "Außen angelegte und gelöschte Dateien erscheinen/verschwinden im Baum",
       "ok": true,
       "detail": "Baum folgt dem Ordner live",
-      "ms": 501,
+      "ms": 509,
       "shots": []
     },
     {
@@ -235,7 +235,7 @@
       "name": "Code-Datei (.cs) bearbeiten und automatisch speichern",
       "ok": true,
       "detail": "Speichern und Aktualisieren in beide Richtungen",
-      "ms": 1233,
+      "ms": 1243,
       "shots": [
         {
           "name": "013.png",
@@ -245,13 +245,26 @@
     },
     {
       "group": "Dateien",
-      "name": "HTML-Datei als Vorschau: CSS, Bild und Skript werden geladen",
+      "name": "Textdatei (.txt): Strg+A markiert alles, Suchen & Ersetzen, Alles kopieren",
       "ok": true,
-      "detail": "Skript lief · CSS aktiv (rgb(200, 0, 0)) · Bild geladen (1 px)",
-      "ms": 620,
+      "detail": "Zeile 1 von 5 · Spalte 1 · 61 Wörter · 376 Zeichen",
+      "ms": 1054,
       "shots": [
         {
           "name": "014.png",
+          "label": "Textdatei: Suchen"
+        }
+      ]
+    },
+    {
+      "group": "Dateien",
+      "name": "HTML-Datei als Vorschau: CSS, Bild und Skript werden geladen",
+      "ok": true,
+      "detail": "Skript lief · CSS aktiv (rgb(200, 0, 0)) · Bild geladen (1 px)",
+      "ms": 645,
+      "shots": [
+        {
+          "name": "015.png",
           "label": "HTML-Vorschau"
         }
       ]
@@ -261,7 +274,7 @@
       "name": "HTML-Skripte sind abgeschottet (kein Zugriff auf deine Dateien)",
       "ok": true,
       "detail": "Zugriff auf /api blockiert · auch „Im Browser öffnen“ läuft in der Sandbox",
-      "ms": 4,
+      "ms": 7,
       "shots": []
     },
     {
@@ -269,10 +282,10 @@
       "name": "HTML geteilt: Code ändern → Vorschau folgt live, Datei wird gespeichert",
       "ok": true,
       "detail": "Vorschau aktualisiert und Datei gespeichert",
-      "ms": 993,
+      "ms": 1034,
       "shots": [
         {
-          "name": "015.png",
+          "name": "016.png",
           "label": "HTML: Code und Vorschau nebeneinander"
         }
       ]
@@ -282,10 +295,10 @@
       "name": "Unbekannte Endung mit Text → Editor, Binärdatei → Infokarte",
       "ok": true,
       "detail": ".wt → Texteditor · .bin → Infokarte",
-      "ms": 566,
+      "ms": 644,
       "shots": [
         {
-          "name": "016.png",
+          "name": "017.png",
           "label": "Binärdatei: Infokarte mit „Öffnen mit …“"
         }
       ]
@@ -295,10 +308,10 @@
       "name": "Vorschau: Excel, PowerPoint",
       "ok": true,
       "detail": "Excel ok · PowerPoint: 2 Folien",
-      "ms": 556,
+      "ms": 592,
       "shots": [
         {
-          "name": "017.png",
+          "name": "018.png",
           "label": "Excel-Vorschau"
         }
       ]
@@ -308,7 +321,7 @@
       "name": "Neue Word-, Excel- und PowerPoint-Dokumente aus Vorlagen",
       "ok": true,
       "detail": "Neu.docx (0 B), Neu.xlsx (6170 B), Neu.pptx (0 B)",
-      "ms": 244,
+      "ms": 236,
       "shots": []
     },
     {
@@ -316,7 +329,7 @@
       "name": "Löschen verschiebt in den Papierkorb",
       "ok": true,
       "detail": "Datei im Windows-Papierkorb",
-      "ms": 644,
+      "ms": 1144,
       "shots": []
     },
     {
@@ -324,10 +337,10 @@
       "name": "Alle Absätze und Tabellenzellen sind bearbeitbar",
       "ok": true,
       "detail": "12 bearbeitbar, 0 gesperrt",
-      "ms": 374,
+      "ms": 377,
       "shots": [
         {
-          "name": "018.png",
+          "name": "019.png",
           "label": "Word-Dokument im Bearbeiten-Modus"
         }
       ]
@@ -337,7 +350,7 @@
       "name": "In leere Tabellenzelle schreiben und Zelle leeren",
       "ok": true,
       "detail": "Zelle beschrieben, andere Zelle geleert",
-      "ms": 490,
+      "ms": 497,
       "shots": []
     },
     {
@@ -345,7 +358,7 @@
       "name": "Enter teilt einen Absatz, Rücktaste verbindet ihn wieder",
       "ok": true,
       "detail": "geteilt → gespeichert → verbunden → gespeichert",
-      "ms": 900,
+      "ms": 886,
       "shots": []
     },
     {
@@ -353,10 +366,10 @@
       "name": "Fett, kursiv, unterstrichen, Farbe, Markieren",
       "ok": true,
       "detail": "w:rPr = b → i → color → highlight → u (Schema-Reihenfolge korrekt)",
-      "ms": 711,
+      "ms": 670,
       "shots": [
         {
-          "name": "019.png",
+          "name": "020.png",
           "label": "Formatierung in Word"
         }
       ]
@@ -366,10 +379,10 @@
       "name": "Tabellenzeile einfügen, ausfüllen und wieder löschen",
       "ok": true,
       "detail": "4 → 5 → 4 Zeilen",
-      "ms": 1032,
+      "ms": 1017,
       "shots": [
         {
-          "name": "020.png",
+          "name": "021.png",
           "label": "Neue Tabellenzeile"
         }
       ]
@@ -379,7 +392,7 @@
       "name": "Umlaute, Sonderzeichen und Emoji",
       "ok": true,
       "detail": "äöüß € → 😀 gespeichert",
-      "ms": 477,
+      "ms": 462,
       "shots": []
     },
     {
@@ -387,10 +400,10 @@
       "name": "Datei in einem anderen Programm gesperrt → verständliche Meldung, danach klappt es",
       "ok": true,
       "detail": "Meldung: „Die Datei ist gerade in einem anderen Programm geöffnet (z. B. Word). Schließe sie dort und speichere erneut.“",
-      "ms": 6833,
+      "ms": 6820,
       "shots": [
         {
-          "name": "021.png",
+          "name": "022.png",
           "label": "Meldung: Datei gesperrt"
         }
       ]
@@ -400,18 +413,18 @@
       "name": "Außen geändert bei ungespeicherten Änderungen → Nachfrage",
       "ok": true,
       "detail": "Nachfrage erschienen, eigene Änderung gespeichert",
-      "ms": 1261,
+      "ms": 1277,
       "shots": []
     },
     {
       "group": "Word",
       "name": "Werkzeugleiste bleibt beim Scrollen sichtbar",
       "ok": true,
-      "detail": "nach 13180 px Scrollen noch oben, 49 px hoch",
-      "ms": 1056,
+      "detail": "nach 378 px Scrollen noch oben, 49 px hoch",
+      "ms": 894,
       "shots": [
         {
-          "name": "022.png",
+          "name": "023.png",
           "label": "Word: ganz nach unten gescrollt, Leiste bleibt oben"
         }
       ]
@@ -420,37 +433,24 @@
       "group": "Word",
       "name": "Sicherungskopie des Originals beim ersten Speichern",
       "ok": true,
-      "detail": "Genau eine Sicherung: 2026-09-29-10-07-12_Arbeitsblatt.docx",
+      "detail": "Genau eine Sicherung: 2026-10-08-10-16-24_Arbeitsblatt.docx",
       "ms": 0,
       "shots": []
     },
     {
       "group": "Word",
-      "name": "Echte Schuldatei (Quiz): Zuordnung, Tabelle ändern, speichern",
-      "ok": true,
-      "detail": "630 von 630 Absätzen bearbeitbar",
-      "ms": 975,
-      "shots": [
-        {
-          "name": "023.png",
-          "label": "Echte Quiz-Datei: Tabelle bearbeitet"
-        }
-      ]
-    },
-    {
-      "group": "Word",
       "name": "Prüfung durch Microsoft Word: Dateien öffnen ohne Reparatur",
       "ok": true,
-      "detail": "Arbeitsblatt.docx: 16 Absätze, 1 Tabellen · Quiz (echte Datei).docx: 726 Absätze, 18 Tabellen",
-      "ms": 4251,
+      "detail": "Arbeitsblatt.docx: 16 Absätze, 1 Tabellen",
+      "ms": 4836,
       "shots": []
     },
     {
       "group": "PDF",
       "name": "PDF anzeigen: Seiten, Text und Formularfelder",
       "ok": true,
-      "detail": "3 Seiten, 5 Formularfelder erkannt",
-      "ms": 407,
+      "detail": "3 Seiten, 7 Formularfelder erkannt",
+      "ms": 541,
       "shots": []
     },
     {
@@ -458,7 +458,7 @@
       "name": "Text mit der Maus markieren und kopieren (Strg+C)",
       "ok": true,
       "detail": "Markiert und kopiert: „Arbeitsblatt Topologien“",
-      "ms": 447,
+      "ms": 514,
       "shots": [
         {
           "name": "024.png",
@@ -471,7 +471,7 @@
       "name": "„Text kopieren“ kopiert den ganzen Text aller Seiten",
       "ok": true,
       "detail": "143 Zeichen aus 3 Seiten · Meldung: ✓ Text kopiert (134 Zeichen, 3 Seiten)",
-      "ms": 128,
+      "ms": 138,
       "shots": []
     },
     {
@@ -479,7 +479,7 @@
       "name": "Echte Schuldatei: Absatz mit der Maus markieren und kopieren",
       "ok": true,
       "detail": "127 Textstücke auf Seite 1 · kopiert: „Wenn ein Netzwerk (oder ein Netzwerk-Segment) der Bus- Topologie folgt, dann gibt es eine …“",
-      "ms": 932,
+      "ms": 1009,
       "shots": [
         {
           "name": "025.png",
@@ -492,7 +492,7 @@
       "name": "Formular ausfüllen: Textfeld, Kästchen, Liste, Optionsfeld",
       "ok": true,
       "detail": "{\"name\":\"Max Müller\",\"fertig\":true,\"klasse\":\"FI12\",\"note\":\"mittel\"}",
-      "ms": 798,
+      "ms": 985,
       "shots": [
         {
           "name": "026.png",
@@ -502,10 +502,18 @@
     },
     {
       "group": "PDF",
+      "name": "Formular: gleiche Schrift in kleinen und großen Feldern, Zeilenumbrüche bleiben",
+      "ok": true,
+      "detail": "Schrift 18.4874px in beiden Feldern · gespeichert: \"Zeile eins\\nZeile zwei\" · 0 g\n/ArialMT 10 Tf",
+      "ms": 857,
+      "shots": []
+    },
+    {
+      "group": "PDF",
       "name": "Vorhandenen Text ändern",
       "ok": true,
       "detail": "Neuer Text im PDF gefunden",
-      "ms": 896,
+      "ms": 1143,
       "shots": [
         {
           "name": "027.png",
@@ -518,7 +526,7 @@
       "name": "Neuen Text mehrzeilig mit Umlauten schreiben",
       "ok": true,
       "detail": "Beide Zeilen im PDF · Zeichen ohne Arial-Glyphe (✓) → „?“",
-      "ms": 1015,
+      "ms": 1577,
       "shots": []
     },
     {
@@ -526,7 +534,7 @@
       "name": "Abdecken, Markieren und Zeichnen (Pixelprüfung)",
       "ok": true,
       "detail": "Abdecken: 1720→0 dunkle Pixel · Markierung: 100 % gelb · Zeichnung: 1836 rote Pixel",
-      "ms": 1712,
+      "ms": 1705,
       "shots": [
         {
           "name": "028.png",
@@ -539,7 +547,7 @@
       "name": "Bild einfügen (z. B. Unterschrift), vergrößern und speichern",
       "ok": true,
       "detail": "Bild eingefügt, Breite 200 → 232 pt, im PDF vorhanden",
-      "ms": 1374,
+      "ms": 1414,
       "shots": [
         {
           "name": "029.png",
@@ -552,7 +560,7 @@
       "name": "Eingefügten Text verschieben und mit Entf löschen",
       "ok": true,
       "detail": "verschoben um 65 pt, danach gelöscht",
-      "ms": 600,
+      "ms": 573,
       "shots": []
     },
     {
@@ -560,7 +568,7 @@
       "name": "Werkzeugleiste bleibt beim Scrollen sichtbar",
       "ok": true,
       "detail": "nach 4035 px Scrollen noch oben",
-      "ms": 318,
+      "ms": 303,
       "shots": []
     },
     {
@@ -568,7 +576,7 @@
       "name": "Rückgängig und Zoom",
       "ok": true,
       "detail": "Rückgängig ok · Zoom 1100 → 1320 px",
-      "ms": 1344,
+      "ms": 1355,
       "shots": []
     },
     {
@@ -576,7 +584,7 @@
       "name": "Seite drehen und Seite löschen",
       "ok": true,
       "detail": "Seite 3 gedreht (90°), dann gelöscht → 2 Seiten",
-      "ms": 1808,
+      "ms": 1793,
       "shots": []
     },
     {
@@ -584,7 +592,7 @@
       "name": "Echte Schuldatei (Topologien): Text ändern und markieren",
       "ok": true,
       "detail": "Überschrift geändert, im PDF-Text gefunden",
-      "ms": 1595,
+      "ms": 1518,
       "shots": [
         {
           "name": "030.png",
@@ -597,7 +605,7 @@
       "name": "Links im PDF: Webseite, Sprung im Dokument, andere Datei, Adresse im Text",
       "ok": true,
       "detail": "5 Links erkannt · Web, Text-Adresse und E-Mail geöffnet · Sprung zu Seite 2 · Datei-Link öffnet Formular.pdf in der App",
-      "ms": 2751,
+      "ms": 2878,
       "shots": [
         {
           "name": "031.png",
@@ -606,19 +614,169 @@
       ]
     },
     {
+      "group": "PDF",
+      "name": "Übersetzung beim Drüberfahren: Wort und Wortverbindung, Markieren geht weiter",
+      "ok": true,
+      "detail": "2 Wörter mit Übersetzung · Karte mit DE/EN und Wortverbindung · wechselt von Wort zu Wort · Link unter dem Wort funktioniert · verschwindet daneben · Markieren: „Technology applies knowledge gained“",
+      "ms": 1145,
+      "shots": [
+        {
+          "name": "032.png",
+          "label": "Übersetzung über „applies“"
+        }
+      ]
+    },
+    {
+      "group": "PDF",
+      "name": "Echtes Englisch-Arbeitsblatt: Übersetzung über jedem Wort",
+      "ok": true,
+      "detail": "520 Wörter mit Übersetzung auf Seite 1 · „commonplace“ → alltäglich · „drawing conclusions from“ → Schlussfolgerungen ziehen aus",
+      "ms": 1365,
+      "shots": [
+        {
+          "name": "033.png",
+          "label": "Englisch-Arbeitsblatt: Übersetzung über „commonplace“"
+        },
+        {
+          "name": "034.png",
+          "label": "Englisch-Arbeitsblatt: Wortverbindung „drawing conclusions from“"
+        }
+      ]
+    },
+    {
+      "group": "Bild",
+      "name": "Foto öffnen: Bearbeitungsleiste, ganzes Bild sichtbar",
+      "ok": true,
+      "detail": "800×600 px · 11 Werkzeuge · Zoom 100 %",
+      "ms": 873,
+      "shots": [
+        {
+          "name": "035.png",
+          "label": "Foto im Bildeditor"
+        },
+        {
+          "name": "036.png",
+          "label": "Bildeditor im dunklen Design"
+        }
+      ]
+    },
+    {
+      "group": "Bild",
+      "name": "Drehen und Spiegeln, danach speichern (mit Sicherungskopie)",
+      "ok": true,
+      "detail": "rechts gedreht → 600×800, rotes Feld oben rechts · gespiegelt → oben links · Sicherung: 2026-10-08-10-17-03_Tafel.png",
+      "ms": 968,
+      "shots": []
+    },
+    {
+      "group": "Bild",
+      "name": "Stift, Pfeil, Text und Verpixeln landen im gespeicherten Bild",
+      "ok": true,
+      "detail": "Stift 1382, Pfeil 1448, Text 1214 rote Pixel im gespeicherten Bild",
+      "ms": 1127,
+      "shots": [
+        {
+          "name": "037.png",
+          "label": "Gezeichnet, Pfeil, Text und verpixelt"
+        }
+      ]
+    },
+    {
+      "group": "Bild",
+      "name": "Gezeichnetes verschieben, löschen, Rückgängig und Wiederholen",
+      "ok": true,
+      "detail": "Text um 90 px verschoben · Entf löscht · Strg+Z / Strg+Y",
+      "ms": 118,
+      "shots": []
+    },
+    {
+      "group": "Bild",
+      "name": "Zuschneiden: Ecke ziehen, mit Enter übernehmen",
+      "ok": true,
+      "detail": "600×800 → 450×600 px",
+      "ms": 1008,
+      "shots": [
+        {
+          "name": "038.png",
+          "label": "Zuschneiden"
+        }
+      ]
+    },
+    {
+      "group": "Bild",
+      "name": "Dokument-Scan macht das Foto schwarz-weiß und hell – JPEG bleibt JPEG",
+      "ok": true,
+      "detail": "JPEG 1200×900 · Rot → 54,54,54 · Papier → 255,255,255",
+      "ms": 1134,
+      "shots": [
+        {
+          "name": "039.png",
+          "label": "Dokument-Scan"
+        }
+      ]
+    },
+    {
+      "group": "Bild",
+      "name": "Abdecken: Antwort verschwindet in der Papierfarbe",
+      "ok": true,
+      "detail": "dunkle Pixel der Antwort: 2791 → 0",
+      "ms": 1719,
+      "shots": []
+    },
+    {
+      "group": "Bild",
+      "name": "„Als Kopie“: Original bleibt unverändert, Kopie wird geöffnet",
+      "ok": true,
+      "detail": "„Zweites (bearbeitet).png“ mit Strich (2232 rote Pixel), Original unverändert",
+      "ms": 703,
+      "shots": []
+    },
+    {
+      "group": "Bild",
+      "name": "BMP: Bearbeitung wird als PNG-Kopie gespeichert",
+      "ok": true,
+      "detail": "Alt.bmp (60×40) gedreht → „Alt (bearbeitet).png“ (40×60), Original unverändert",
+      "ms": 571,
+      "shots": []
+    },
+    {
+      "group": "Bild",
+      "name": "GIF wird erst normal (animiert) gezeigt, „✏️ Bearbeiten“ öffnet den Editor",
+      "ok": true,
+      "detail": "Vorschau → Bildeditor (Speichern als PNG-Kopie)",
+      "ms": 406,
+      "shots": []
+    },
+    {
+      "group": "Bild",
+      "name": "Mit ← → durch die Bilder im Ordner blättern",
+      "ok": true,
+      "detail": "Bilder/Foto.jpg → Bilder/Tafel.png → zurück (6 Bilder im Ordner)",
+      "ms": 741,
+      "shots": []
+    },
+    {
+      "group": "Bild",
+      "name": "Bild in einer Seite: „✏️ Bearbeiten“ öffnet den Bildeditor, „Zurück“ führt zur Seite",
+      "ok": true,
+      "detail": "Seite → Bildeditor → zurück zur Seite",
+      "ms": 584,
+      "shots": []
+    },
+    {
       "group": "Allgemein",
       "name": "Schneller Wechsel direkt nach dem Speichern verliert nichts",
       "ok": true,
       "detail": "Beide Änderungen gespeichert",
-      "ms": 2564,
+      "ms": 2547,
       "shots": []
     },
     {
       "group": "Allgemein",
       "name": "Speicherzeit: Änderung liegt in unter 2 s im Ordner",
       "ok": true,
-      "detail": "630 ms vom Tastendruck bis zur Datei",
-      "ms": 913,
+      "detail": "627 ms vom Tastendruck bis zur Datei",
+      "ms": 906,
       "shots": []
     },
     {
@@ -626,10 +784,10 @@
       "name": "Dunkles Design",
       "ok": true,
       "detail": "umgeschaltet",
-      "ms": 3186,
+      "ms": 3177,
       "shots": [
         {
-          "name": "032.png",
+          "name": "040.png",
           "label": "Dunkles Design"
         }
       ]
@@ -638,15 +796,15 @@
       "group": "Ordner",
       "name": "Anderen Ordner über den Windows-Dialog hinzufügen",
       "ok": true,
-      "detail": "Verknüpft: C:\\Users\\samub\\AppData\\Local\\Temp\\lernplattform-test-zweiter-ordner-2026-09-29T10-06-45",
-      "ms": 757,
+      "detail": "Verknüpft: C:\\Users\\samub\\AppData\\Local\\Temp\\lernplattform-test-zweiter-ordner-2026-10-08T10-15-55",
+      "ms": 727,
       "shots": [
         {
-          "name": "033.png",
+          "name": "041.png",
           "label": "Ordner-Umschalter"
         },
         {
-          "name": "034.png",
+          "name": "042.png",
           "label": "Zweiter Ordner verknüpft"
         }
       ]
@@ -656,15 +814,15 @@
       "name": "Im neuen Ordner arbeiten: Seite ändern wird dort gespeichert",
       "ok": true,
       "detail": "Speichern und Live-Sync im zweiten Ordner funktionieren",
-      "ms": 1202,
+      "ms": 1209,
       "shots": []
     },
     {
       "group": "Ordner",
       "name": "Zurück zum ersten Ordner wechseln",
       "ok": true,
-      "detail": "Menü: 📁lernplattform-test-2026-09-29T10-06-45C:\\Users\\samub\\AppData\\Local\\Temp\\lernplattform-test-2026-09-29T10-06-45 | ✅lernplattform-test-zweiter-ordner-2026-09-29",
-      "ms": 282,
+      "detail": "Menü: 📁lernplattform-test-2026-10-08T10-15-55C:\\Users\\samub\\AppData\\Local\\Temp\\lernplattform-test-2026-10-08T10-15-55 | ✅lernplattform-test-zweiter-ordner-2026-10-08",
+      "ms": 280,
       "shots": []
     },
     {
@@ -672,7 +830,7 @@
       "name": "Ordner aus der Liste entfernen (Dateien bleiben)",
       "ok": true,
       "detail": "Aus der Liste entfernt, Dateien unverändert",
-      "ms": 142,
+      "ms": 147,
       "shots": []
     },
     {
@@ -680,7 +838,7 @@
       "name": "Keine JavaScript-Fehler während aller Tests",
       "ok": true,
       "detail": "keine",
-      "ms": 1,
+      "ms": 0,
       "shots": []
     }
   ]

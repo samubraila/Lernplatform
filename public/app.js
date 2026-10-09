@@ -17,6 +17,7 @@
     kind: null, path: null,                  // aktuelle Ansicht
     doc: null,                               // geöffnete bearbeitbare Datei (Seite oder Textdatei)
     editor: null,
+    text: null,                              // Editor der geöffneten Textdatei (.txt, Code …)
     routeToken: 0,
     focusTitle: false,
     bin: null,                               // geöffnetes Word-/PDF-Dokument zum Bearbeiten
@@ -98,6 +99,8 @@
     sheet: ['.xlsx', '.xlsm', '.xls', '.ods'],
     slides: ['.pptx', '.pptm', '.ppsx'],
   };
+  // Bilder, die direkt in der App bearbeitet werden können (SVG und Symbole nur als Vorschau)
+  const EDIT_IMG = ['.png', '.jpg', '.jpeg', '.webp', '.bmp', '.gif', '.avif'];
   function kindOf(ext) {
     if (ext === '.md') return 'note';
     if (ext === '.pdf') return 'pdf';
@@ -468,6 +471,7 @@
     S.bin?.ed.destroy?.();
     S.bin = null;
     if (S.editor) { S.editor.destroy(); S.editor = null; }
+    S.text?.destroy(); S.text = null;
     hideBanner(); setSave('');
     $('#topButtons').innerHTML = '';
   }
@@ -475,6 +479,7 @@
   async function route() {
     const token = ++S.routeToken;
     const p = currentHashPath();
+    if (p !== S.path) S.prevPath = S.path;           // für „Zurück zur Seite“ (z. B. nach dem Bearbeiten eines Bildes aus einer Notiz)
     await leaveCurrent();
     if (token !== S.routeToken) return;
     view.scrollTop = 0;
@@ -701,8 +706,10 @@
 
   function fileButtons(p, k) {
     const apps = appsFor(P.ext(p), k);
-    if (apps[0]) topButton(`${APP_ICONS[apps[0]] || '✏️'} In ${esc(S.apps[apps[0]])} bearbeiten`, `Mit ${S.apps[apps[0]]} öffnen – Änderungen werden im Ordner gespeichert`, () => openIn(p, apps[0])).classList.add('primary');
-    else topButton('🪟 Mit App öffnen', 'Mit dem Standardprogramm öffnen', () => openIn(p, 'default')).classList.add('primary');
+    const main = apps[0]
+      ? topButton(`${APP_ICONS[apps[0]] || '✏️'} In ${esc(S.apps[apps[0]])} bearbeiten`, `Mit ${S.apps[apps[0]]} öffnen – Änderungen werden im Ordner gespeichert`, () => openIn(p, apps[0]))
+      : topButton('🪟 Mit App öffnen', 'Mit dem Standardprogramm öffnen', () => openIn(p, 'default'));
+    if (!(k === 'image' && EDIT_IMG.includes(P.ext(p)))) main.classList.add('primary');   // Bilder bearbeitet man direkt hier
     topButton('🧰 Öffnen mit ▾', 'Anderes Programm wählen', a => openWithMenu(p, a));
     topButton('📂', 'Im Explorer zeigen', () => api.open(p, true));
     topButton('⋯', 'Mehr', a => itemMenu({ type: 'file', path: p, name: P.base(p), ext: P.ext(p) }, a));
@@ -732,7 +739,15 @@
     fileButtons(p, k);
     const wrap = document.createElement('div'); wrap.className = 'file-view';
     view.replaceChildren(wrap);
-    if (k === 'image') wrap.innerHTML = `<div class="image-view"><img src="${raw(p)}" alt=""></div>`;
+    if (k === 'image' && EDIT_IMG.includes(P.ext(p)) && P.ext(p) !== '.gif' && st.size) return renderImage(wrap, p, token);
+    else if (k === 'image') {
+      wrap.innerHTML = `<div class="image-view"><img src="${raw(p)}" alt=""></div>`;
+      // GIFs zuerst animiert zeigen – der Editor kennt nur das erste Bild
+      if (P.ext(p) === '.gif' && st.size) {
+        const b = topButton('✏️ Bearbeiten', 'Bild bearbeiten (bei animierten GIFs nur das erste Bild) – gespeichert wird eine PNG-Kopie', () => { b.remove(); renderImage(wrap, p, S.routeToken); });
+        $('#topButtons').prepend(b);
+      }
+    }
     else if (k === 'video') wrap.innerHTML = `<div class="media-view"><video src="${raw(p)}" controls></video></div>`;
     else if (k === 'audio') wrap.innerHTML = `<div class="media-view"><audio src="${raw(p)}" controls></audio></div>`;
     else if (k === 'text' && ['.html', '.htm'].includes(P.ext(p)) && st.size < 3 * 1024 * 1024) return showHtml(p, token, wrap);
@@ -780,6 +795,7 @@
         }
       }
       S.kind = kindOf(P.ext(p));
+      if (b && b.path === p) { b.ed.destroy?.(); S.bin = null; }   // altes Bearbeitungsfenster abmelden (Tastatur, Größenbeobachter)
       await showFile(p, st, token);
       view.scrollTop = sc;
       setSave('↻ Vorschau aktualisiert');
@@ -793,6 +809,7 @@
     const b = S.bin; if (!b) return;
     const btn = b.bar.querySelector('[data-save]'); if (btn) btn.disabled = !b.dirty;
     if (b.dirty) setSave('● Ungespeicherte Änderungen');
+    else if ($('#saveState').textContent.startsWith('●')) setSave('');   // z. B. alles rückgängig gemacht
   }
 
   function markBinDirty() {
@@ -803,6 +820,7 @@
 
   async function saveBin(leaving = false) {
     const b = S.bin; if (!b) return;
+    if (b.ed instanceof ImageEditor && !b.ed.canOverwrite) return saveImageCopy(leaving);
     if (b.saving) return b.saving;
     b.saving = (async () => {
       setSave('Speichert …');
@@ -811,6 +829,8 @@
         const r = await req(`/api/write?path=${enc(b.path)}&backup=${S.backedUp.has(b.path) ? 0 : 1}`, { method: 'POST', body: bytes }).then(x => x.json());
         S.backedUp.add(b.path);
         b.lastMtime = r.mtime; b.lastSize = bytes.length; b.savedAt = Date.now(); b.dirty = false;
+        // Bilder bleiben nach dem Speichern bearbeitbar – wurde währenddessen weitergezeichnet, ist das noch ungespeichert
+        if (b.ed.markSaved) { b.ed.markSaved(); b.dirty = b.ed.isDirty(); }
         S.ownWrites.set(b.path, { size: bytes.length, mtime: r.mtime, at: Date.now() });
         if (r.backup) UI.toast('✓ Gespeichert – das Original liegt als Sicherung in LernPlattform\\Sicherungen');
         if (!leaving) {
@@ -823,6 +843,56 @@
       } finally { b.saving = null; }
     })();
     return b.saving;
+  }
+
+  // Bearbeitetes Bild als neue Datei speichern (z. B. „Foto (bearbeitet).jpg“) – das Original bleibt unverändert.
+  // Auch für Formate, die der Browser nicht schreiben kann (GIF, BMP …): dann als PNG.
+  async function saveImageCopy(leaving = false) {
+    const b = S.bin; if (!b || !(b.ed instanceof ImageEditor)) return;
+    if (b.saving) await b.saving.catch(() => {});
+    b.saving = (async () => {
+      setSave('Speichert …');
+      try {
+        const { bytes, ext } = await b.ed.getCopy();
+        const dir = P.dir(b.path);
+        const r = await api.create(dir, `${P.stem(b.path)} (bearbeitet)${ext}`, new Blob([bytes]));
+        b.ed.markSaved(); b.dirty = b.ed.isDirty();
+        await listing(dir, true).catch(() => {}); renderTree();
+        UI.toast(`✓ Als neue Datei gespeichert: ${r.name}`);
+        if (!leaving) { setSave('✓ Gespeichert'); go(r.path); }
+      } catch (e) {
+        setSave('⚠ Nicht gespeichert'); UI.toast(e.message, true); throw e;
+      } finally { b.saving = null; }
+    })();
+    return b.saving;
+  }
+
+  async function renderImage(wrap, p, token) {
+    wrap.classList.add('img-mode');
+    wrap.innerHTML = '<div class="preview-loading">⏳ Bild wird geladen …</div>';
+    if (S.prevPath && P.ext(S.prevPath) === '.md') $('#topButtons').prepend(topButton('↩ Zurück zur Seite', 'Zurück zur Seite, aus der du das Bild geöffnet hast', () => history.back()));
+    try {
+      const [buf, items] = await Promise.all([fetchBuf(p), listing(P.dir(p)).catch(() => [])]);
+      if (token !== S.routeToken) return;
+      // Nachbarbilder im selben Ordner: mit ← → oder den Pfeilen am Rand durchblättern
+      const imgs = items.filter(i => i.type === 'file' && EDIT_IMG.includes(i.ext) && i.ext !== '.gif').map(i => i.path);
+      const i = imgs.indexOf(p);
+      const host = document.createElement('div'); host.className = 'img-editor';
+      wrap.replaceChildren(host);
+      const ed = new ImageEditor(host, buf, {
+        ext: P.ext(p), go, onDirty: markBinDirty,
+        onSave: () => saveBin().catch(() => {}), onSaveCopy: () => saveImageCopy().catch(() => {}),
+        siblings: i < 0 ? null : { prev: imgs[i - 1] || null, next: imgs[i + 1] || null, pos: i + 1, total: imgs.length },
+      });
+      try { await ed.render(); } catch (e) { ed.destroy(); throw e; }
+      if (token !== S.routeToken) { ed.destroy(); return; }
+      S.bin = makeBin(p, ed, ed.bar);
+    } catch (e) {
+      if (token !== S.routeToken) return;
+      wrap.classList.remove('img-mode');
+      wrap.innerHTML = `<div class="image-view"><img src="${raw(p)}" alt=""></div>`;
+      UI.toast('Dieses Bild kann nur angezeigt werden (' + e.message + ')', true);
+    }
   }
 
   async function renderDocx(wrap, buf, p) {
@@ -999,12 +1069,12 @@
   async function showText(p, token, wrap) {
     const text = await api.read(p);
     if (token !== S.routeToken) return;
-    wrap.innerHTML = '<div class="text-view"><textarea spellcheck="false"></textarea></div>';
-    const ta = wrap.querySelector('textarea'); ta.value = text;
-    ta.addEventListener('input', markDirty);
-    ta.addEventListener('keydown', e => { if (e.key === 'Tab') { e.preventDefault(); document.execCommand('insertText', false, '    '); } });
-    S.doc = makeDoc(p, text, () => ta.value, t => { const s = ta.selectionStart; ta.value = t; ta.lastSaved = t; S.doc.lastSaved = t; ta.selectionStart = ta.selectionEnd = Math.min(s, t.length); });
+    wrap.classList.add('txt-mode');
+    const ed = S.text = new TextEditor(wrap, text, { ext: P.ext(p), store, onInput: markDirty });
+    const doc = makeDoc(p, text, () => ed.value, t => { ed.setText(t); doc.lastSaved = t; });
+    S.doc = doc;
     view.replaceChildren(wrap);
+    ed.focus();
   }
 
   // ---------- HTML-Dateien: Vorschau / Code / geteilt ----------
@@ -1180,8 +1250,8 @@
     if (S.doc && paths.includes(S.doc.path)) onDocChangedOnDisk();
     if (S.kind === 'folder' && (dirs.has(S.path) || paths.some(p => P.dir(p) === S.path))) refreshView();
     if (S.kind === 'home' && paths.some(p => !p.includes('/'))) refreshView();
-    if (['docx', 'sheet', 'slides', 'pdf', 'other'].includes(S.kind) && paths.includes(S.path)) refreshFile();
-    if (['image'].includes(S.kind) && paths.includes(S.path)) {
+    if ((['docx', 'sheet', 'slides', 'pdf', 'other'].includes(S.kind) || S.bin?.ed instanceof ImageEditor) && paths.includes(S.path)) refreshFile();
+    else if (S.kind === 'image' && paths.includes(S.path)) {
       const el = view.querySelector('img, iframe'); if (el) el.src = raw(S.path) + '&v=' + Date.now();
     }
   }
