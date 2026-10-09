@@ -327,9 +327,10 @@ class Editor {
   buildImage(b) {
     const el = b.el; el.tabIndex = -1;
     const c = document.createElement('div'); c.className = 'content'; c.contentEditable = 'false';
+    const local = !/^(https?:|data:|blob:)/i.test(b.src) && /\.(png|jpe?g|webp|bmp|gif|avif)$/i.test(b.src.split(/[?#]/)[0]);   // Fotos aus dem Ordner lassen sich in der App bearbeiten
     c.innerHTML = `<figure><div class="img-wrap"><img alt=""><div class="img-tools">
       <button data-w="25%">S</button><button data-w="50%">M</button><button data-w="75%">L</button><button data-w="">Voll</button>
-      <button data-act="open" title="Bild groß öffnen">↗</button><button data-act="del" title="Bild entfernen">🗑</button></div><div class="resize" title="Größe ziehen"></div></div>
+      <button data-act="open" title="${local ? 'Bild öffnen und bearbeiten – drehen, zeichnen, zuschneiden …' : 'Bild groß öffnen'}">${local ? '✏️ Bearbeiten' : '↗'}</button><button data-act="del" title="Bild entfernen">🗑</button></div><div class="resize" title="Größe ziehen"></div></div>
       <figcaption contenteditable="true"></figcaption></figure>`;
     const img = c.querySelector('img'); const wrap = c.querySelector('.img-wrap'); const cap = c.querySelector('figcaption');
     img.src = this.opts.resolveSrc(b.src);

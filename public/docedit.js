@@ -322,6 +322,11 @@ class DocxEditor {
 
 // ---------- PDF ----------
 // Darstellung mit pdf.js, Änderungen werden mit pdf-lib in die PDF-Datei geschrieben.
+// Formularfelder mit „automatischer“ Schriftgröße (0 Tf) bekommen überall dieselbe Größe, statt mit dem Kästchen
+// zu wachsen; nur sehr flache einzeilige Felder etwas kleiner, damit nichts abgeschnitten wird
+const FIELD_PT = 10;
+const autoFieldPt = (h, multiline) => multiline ? FIELD_PT : Math.min(FIELD_PT, Math.max(6, (h - 2) * 0.8));
+
 const PDF_TOOLS = [
   { id: 'select', icon: '🖱️', label: 'Auswählen', hint: 'Text markieren und mit Strg+C kopieren · Eingefügtes anklicken zum Verschieben, Entf löscht' },
   { id: 'edit', icon: '✏️', label: 'Text ändern', hint: 'Klicke auf einen Text im PDF, um ihn zu ändern oder zu löschen.' },
@@ -340,7 +345,7 @@ class PdfEditor {
     this.onDocKey = e => this.onKey(e);
     document.addEventListener('keydown', this.onDocKey);
   }
-  destroy() { document.removeEventListener('keydown', this.onDocKey); this.observer?.disconnect(); }
+  destroy() { document.removeEventListener('keydown', this.onDocKey); this.observer?.disconnect(); if (this.onTipScroll) this.host.closest('.view')?.removeEventListener('scroll', this.onTipScroll); }
 
   async render() { if (!this.bar) this.buildBar(); await this.load(this.bytes); return this; }
   async reload(bytes) { await this.load(bytes, true); }
@@ -354,6 +359,7 @@ class PdfEditor {
   }
 
   async layout(keepScroll) {
+    this.hideTip();
     const scroller = this.host.closest('.view');
     const sc = keepScroll && scroller ? scroller.scrollTop / Math.max(1, scroller.scrollHeight) : 0;
     const pagesBox = document.createElement('div'); pagesBox.className = 'pdf-pages';
@@ -410,6 +416,7 @@ class PdfEditor {
     });
     const annots = await pg.page.getAnnotations({ intent: 'display' });
     this.renderFields(pg, annots);
+    this.renderTips(pg, annots);
     this.renderLinks(pg, annots, tc);
     if (this.tool === 'edit') this.showItems(pg);
     pg.box.classList.add('ready');
@@ -508,7 +515,8 @@ class PdfEditor {
       if (a.fieldType === 'Tx') {
         el = document.createElement(a.multiLine ? 'textarea' : 'input');
         el.value = name in this.form ? this.form[name] : (a.fieldValue || '');
-        el.style.fontSize = Math.max(9, Math.min(r.height * 0.62, 16 * pg.vp.scale)) + 'px';
+        const da = a.defaultAppearanceData?.fontSize;   // Größe aus dem PDF, 0 = automatisch
+        el.style.fontSize = (da > 0 ? da : autoFieldPt(a.rect[3] - a.rect[1], a.multiLine)) * pg.vp.scale + 'px';
         el.oninput = () => { this.form[name] = el.value; this.opts.onDirty(); };
       } else if (a.fieldType === 'Btn' && a.checkBox) {
         el = Object.assign(document.createElement('input'), { type: 'checkbox' });
@@ -531,6 +539,49 @@ class PdfEditor {
       this.place(el, r);
       pg.layer.append(el);
     }
+  }
+
+  // ---- Übersetzungen beim Drüberfahren: unsichtbare Schaltflächen mit Tooltip (/TU), z. B. über jedem Wort ----
+  // Keine eigenen Elemente pro Wort, damit Markieren und Links darunter weiter funktionieren
+  renderTips(pg, annots) {
+    pg.tips = annots.filter(a => a.subtype === 'Widget' && a.fieldType === 'Btn' && a.pushButton && !a.hidden && a.alternativeText?.trim() && a.rect)
+      .map(a => ({ r: this.rectToView(pg, a.rect[0], a.rect[1], a.rect[2] - a.rect[0], a.rect[3] - a.rect[1]), text: a.alternativeText }));
+    if (!pg.tips.length) return;
+    pg.box.addEventListener('mousemove', e => this.hoverTip(pg, e));
+    pg.box.addEventListener('mouseleave', () => this.hideTip());
+    if (!this.onTipScroll) this.host.closest('.view')?.addEventListener('scroll', this.onTipScroll = () => this.hideTip(), { passive: true });
+  }
+
+  hoverTip(pg, e) {
+    if (this.tool !== 'select' || e.buttons) return this.hideTip();
+    const b = pg.box.getBoundingClientRect(), x = e.clientX - b.left, y = e.clientY - b.top;
+    const t = pg.tips.find(t => x >= t.r.left && x <= t.r.left + t.r.width && y >= t.r.top && y <= t.r.top + t.r.height);
+    if (!t) return this.hideTip();
+    if (this.tipFor === t) return;
+    this.tipFor = t;
+    if (!this.tipEl) { this.tipEl = document.createElement('div'); this.tipEl.className = 'pdf-tip'; this.host.append(this.tipEl); }
+    if (!this.tipMark) { this.tipMark = document.createElement('div'); this.tipMark.className = 'pdf-tip-mark'; }
+    pg.layer.append(this.tipMark); this.place(this.tipMark, t.r);
+    // Zeilen "Begriff → Deutsch" beginnen einen Abschnitt, "EN: …" ist die englische Erklärung dazu
+    const secs = [];
+    for (const line of t.text.split(/\r\n|\r|\n/).filter(l => l.trim())) {
+      const m = /^(.+?)\s+→\s+(.+)$/.exec(line), en = /^EN:\s*(.*)$/.exec(line);
+      if (m) secs.push({ term: m[1], de: m[2], en: '' });
+      else if (en && secs.length) secs[secs.length - 1].en = en[1];
+      else secs.push({ term: '', de: line, en: '' });
+    }
+    this.tipEl.innerHTML = secs.map((s, i) => `<div class="tip-sec${i ? ' combo' : ''}">${s.term ? `<div class="tip-term">${MD.esc(s.term)}</div>` : ''}` +
+      `<div class="tip-row"><b>DE</b><span>${MD.esc(s.de)}</span></div>${s.en ? `<div class="tip-row en"><b>EN</b><span>${MD.esc(s.en)}</span></div>` : ''}</div>`).join('');
+    this.tipEl.hidden = false;
+    // unter das Wort, bei Platzmangel darüber, nie aus dem Fenster heraus
+    const w = this.tipEl.offsetWidth, h = this.tipEl.offsetHeight;
+    const top = b.top + t.r.top + t.r.height + 6, left = Math.max(8, Math.min(b.left + t.r.left, innerWidth - w - 8));
+    Object.assign(this.tipEl.style, { left: left + 'px', top: (top + h > innerHeight - 8 ? b.top + t.r.top - h - 6 : top) + 'px' });
+  }
+
+  hideTip() {
+    if (!this.tipFor) return;
+    this.tipFor = null; this.tipEl.hidden = true; this.tipMark.remove();
   }
 
   // ---- Text markieren: rastet immer am nächsten Buchstaben ein (auch wenn man neben dem Text startet) ----
@@ -861,10 +912,20 @@ class PdfEditor {
     }
     const safe = (s, font) => [...s].map(ch => {
       if (ch === '\t') return ' ';
+      if (ch === '\n' || ch === '\r') return ch;     // Zeilenumbrüche behalten (mehrzeilige Felder, Text)
       if (unicode) return font.getCharacterSet().includes(ch.codePointAt(0)) ? ch : '?';
       try { font.encodeText(ch); return ch; } catch { return '?'; }
     }).join('');
     const hex = h => { const n = parseInt(h.slice(1), 16); return rgb(((n >> 16) & 255) / 255, ((n >> 8) & 255) / 255, (n & 255) / 255); };
+
+    // „automatische“ Schriftgröße wie in der Anzeige fest eintragen – sonst rechnet pdf-lib sie passend zum Kästchen aus
+    const fixAutoSize = f => {
+      for (const w of f.acroField.getWidgets()) {
+        const da = w.getDefaultAppearance() ?? f.acroField.getDefaultAppearance();
+        if (da && /(^|\s)0(\.0+)?\s+Tf/.test(da))
+          w.setDefaultAppearance(da.replace(/(^|\s)0(\.0+)?(\s+Tf)/, `$1${autoFieldPt(w.getRectangle().height, f.isMultiline())}$3`));
+      }
+    };
 
     // Formularfelder
     if (Object.keys(this.form).length) {
@@ -872,7 +933,7 @@ class PdfEditor {
       for (const [name, val] of Object.entries(this.form)) {
         try {
           const f = form.getField(name);
-          if (f instanceof PDFLib.PDFTextField) f.setText(safe(String(val), reg));
+          if (f instanceof PDFLib.PDFTextField) { f.setText(safe(String(val), reg)); fixAutoSize(f); }
           else if (f instanceof PDFLib.PDFCheckBox) val ? f.check() : f.uncheck();
           else if (f instanceof PDFLib.PDFRadioGroup) { const o = f.getOptions(); f.select(o.includes(val) ? val : (/^\d+$/.test(val) && o[+val]) || val); }
           else if (f instanceof PDFLib.PDFDropdown || f instanceof PDFLib.PDFOptionList) f.select(val);
